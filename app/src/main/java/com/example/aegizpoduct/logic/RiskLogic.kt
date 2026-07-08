@@ -1,4 +1,4 @@
-package com.example.aegizpoduct.Logic
+package com.example.aegizpoduct.logic
 
 import com.example.aegizpoduct.Model.GarminHealth
 import com.example.aegizpoduct.Model.RiskAssessment
