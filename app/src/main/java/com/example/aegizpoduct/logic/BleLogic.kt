@@ -1,7 +1,6 @@
 package com.example.aegizpoduct.logic
 
 import android.Manifest
-import android.R
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothAdapter
@@ -29,6 +28,7 @@ import android.os.Looper
 import android.os.Binder
 import android.os.Bundle
 import androidx.compose.runtime.key
+import androidx.compose.ui.semantics.Role
 import com.example.aegizpoduct.Model.AppRole
 import com.example.aegizpoduct.Model.DemoConfig
 import com.example.aegizpoduct.Model.AppUser
@@ -38,13 +38,13 @@ import com.example.aegizpoduct.Model.BleUiState
 import com.example.aegizpoduct.Model.BleStage
 import com.example.aegizpoduct.Model.DemoAccount
 import com.example.aegizpoduct.Model.Esp32Telemetry
-//app session kudune sih
+import com.example.aegizpoduct.session.AppSession
 import kotlin.text.Regex
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
+import java.util.logging.Handler
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -55,7 +55,7 @@ fun scanErrorMessage(errorCode: Int): String = when (errorCode) {
     ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED ->
         "Scan BLE gagal, matikan dan nyalakan bluetoth hp"
     ScanCallback.SCAN_FAILED_INTERNAL_ERROR ->
-        "Scan BLE gagal karena error internal Android. Matikan/nyalakan Bluetooth lalu scan ulang."
+        "Scan BLE gagal scan ulang."
     ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED ->
         "HP tidak mendukung BLE"
     ScanCallback.SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES ->
@@ -64,11 +64,13 @@ fun scanErrorMessage(errorCode: Int): String = when (errorCode) {
 }
 
 fun parseBleLine(line : String) : Esp32Telemetry{
-    parsePipeSos(line)?.let{ return it }
+    parsePipeSos(line)?.let{return it}
     fun grab(key: String): String? =
         Regex("""\b$key=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
     val lat = grab("lat")?.toDoubleOrNull()
     val lng = grab("lng")?.toDoubleOrNull()
+    val chars = grab("chars")?.toDoubleOrNull()
+    val gpsFIX = line.contains("GPS:FIX") && lat != null && lng != null
     val lora = when{
         line.contains("LoRa:OK") -> true
         line.contains("LoRa:FAIL") -> false
@@ -76,14 +78,77 @@ fun parseBleLine(line : String) : Esp32Telemetry{
     }
     val wifi = when{
         line.contains("WIFI:OK") -> true
-        line.contains("WIFI:False") -> false
+        line.contains("WIFI:OFF") -> false
         else -> null
     }
-    val sosActive = line.contains("SOS:Active")
-    val sosSender =  Regex("""\b$key=([^\s|]+)""").find(line)?.groupValues.getOrNull(1)
-    val sosDeviceID = Regex("""\b$key=([^\s|]+)""").find(line)?.groupValues.getOrNull(1)
+    val sosActive = line.contains("SOS:ACTIVE")
+    val sosSender =  Regex("""\bsender=([^\s|]+)""").find(line)?.groupValues.getOrNull(1)
+    val sosDeviceID = Regex("""\bdeviceID=([^\s|]+)""").find(line)?.groupValues.getOrNull(1)
+    val sosLat = grab("sosLat")?.toDoubleOrNull() ?: if (sosActive) lat else null
+    val sosLng = grab("sosLng")?.toDoubleOrNull() ?: grab("sosLon")?.toDoubleOrNull() ?: if (sosActive) lng else null
+    val sosSource = Regex("""\bsource=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
+    val sosPacketTimestamp = grab("sosTs")?.toLongOrNull()
+        ?: grab("sosPacketTs")?. toLongOrNull()
+        ?: grab("sos_packet_ts")?.toLongOrNull()
+    return Esp32Telemetry (
+        deviceId = sosDeviceID,
+        gpsValid = gpsFIX,
+        lat = lat,
+        lng = lng,
+        charsProcessed = chars,
+        loraOk = lora,
+        wifiOk = wifi,
+        sosActive = sosActive,
+        sosSender = sosSender,
+        sosLat = sosLat,
+        sosLon = sosLng,
+        sosSource = sosSource,
+        sosPacketTimestamp = sosPacketTimestamp,
+        measuredAtEPoch = System.currentTimeMillis() / 1000
+    )
+}
+private  fun parsePipeSos(line: String): Esp32Telemetry?{
+    val parts = line.trim().split('|')
+    if (parts.size < 6 || !parts[0].equals("SOS", ignoreCase = true)) return null
+    val lat = parts[3].toDoubleOrNull()
+    val lon = parts[4].toDoubleOrNull()
+    val packetTimestamp = parts.getOrNull(6)?.toDoubleOrNull()
+    return Esp32Telemetry(
+        deviceId = parts[2],
+        gpsValid = lat != null && lon != null,
+        lat = lat,
+        lng = lon,
+        loraOk = true,
+        wifiOk = false,
+        sosActive = true,
+        sosSender = parts[1],
+        sosDeviceId = parts[2],
+        sosLat = lat,
+        sosLon = lon,
+        sosSource = parts[5],
+        sosPacketTimestamp = packetTimestamp,
+        measuredAtEPoch = System.currentTimeMillis() / 1000
+    )
 }
 
+fun bleNamesFor(Role : AppRole): List<String> = when(Role){
+    AppRole.RESCUER -> BleConfig.RESCUER_DEVICE_NAMES
+    AppRole.PENANGGUNG_JAWAB -> BleConfig.RECEIVER_DEVICE_NAMES
+}
+class BleManager( private val appContext: Context){
+    private val _state = MutableStateFlow(BleUiState())
+    val state: StateFlow<BleUiState> = _state.asStateFlow()
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private val bluetoothManager: BluetoothManager? =
+        appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+    private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
+
+
+
+
+}
 fun stableQueueEventId(){
 
 }
