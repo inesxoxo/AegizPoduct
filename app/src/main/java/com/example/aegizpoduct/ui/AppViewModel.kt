@@ -21,7 +21,7 @@ import com.example.aegizpoduct.logic.reportMember
 import com.example.aegizpoduct.logic.resolveMember
 import com.example.aegizpoduct.logic.sendSosEventToFirebase
 import com.example.aegizpoduct.logic.SosOfflineQueue
-import com.example.aegizpoduct.model.*
+import com.example.aegizpoduct.Model.*
 import com.example.aegizpoduct.session.AppSession
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

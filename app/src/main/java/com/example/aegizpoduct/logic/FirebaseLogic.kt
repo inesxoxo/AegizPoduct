@@ -1,6 +1,5 @@
 package com.example.aegizpoduct.logic
 
-import androidx.privacysandbox.ads.adservices.adid.AdId
 import com.example.aegizpoduct.Model.AppRole
 import com.example.aegizpoduct.Model.AppUser
 import com.example.aegizpoduct.Model.DemoConfig
