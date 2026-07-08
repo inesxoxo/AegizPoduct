@@ -2,10 +2,8 @@ package com.example.aegizpoduct.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aegizpoduct.logic.BleLogic
-import com.example.aegizpoduct.logic.FirebaseConfig
+import com.example.aegizpoduct.logic.BleManager
 import com.example.aegizpoduct.logic.FirebaseRestClient
 import com.example.aegizpoduct.logic.createMission
 import com.example.aegizpoduct.logic.evaluateRisk
@@ -29,9 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
-import com.example.aegizpoduct.ui.*
 
 class BleViewModel(application: Application) : AndroidViewModel(application) {
     val manager = BleManager(application)

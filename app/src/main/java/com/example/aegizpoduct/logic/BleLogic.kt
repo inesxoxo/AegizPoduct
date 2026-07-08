@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -22,7 +23,6 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelUuid
 import androidx.core.content.ContextCompat
 import com.example.aegizpoduct.model.AppRole
 import com.example.aegizpoduct.model.BleConfig
@@ -141,7 +141,6 @@ class BleManager(private val appContext: Context) {
     private val bluetoothManager: BluetoothManager? =
         appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
     private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
-
     private var gatt: BluetoothGatt? = null
     private var rxChar: BluetoothGattCharacteristic? = null
     private var scanning = false
@@ -240,7 +239,7 @@ class BleManager(private val appContext: Context) {
         val bytes = text.toByteArray(Charsets.UTF_8)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             g.writeCharacteristic(ch, bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) ==
-                    BluetoothGatt.GATT_SUCCESS
+                    BluetoothStatusCodes.SUCCESS
         } else {
             @Suppress("DEPRECATION")
             run {
@@ -251,9 +250,6 @@ class BleManager(private val appContext: Context) {
         }
     }
 
-    // Kirim UID rescuer yang sedang login ke ESP32 lewat BLE, supaya tombol SOS fisik
-    // melaporkan identitas yang benar (bukan ID default firmware). WRITE_TYPE_NO_RESPONSE
-    // tidak ada ACK, jadi dikirim beberapa kali untuk menaikkan peluang sampai.
     @SuppressLint("MissingPermission")
     private fun pushRescuerIdentity() {
         val payload = "ID|${AppSession.currentRescuerId()}"

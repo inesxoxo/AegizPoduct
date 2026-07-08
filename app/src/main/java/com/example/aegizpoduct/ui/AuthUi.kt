@@ -72,17 +72,20 @@ import com.example.aegizpoduct.model.AppRole
 import com.example.aegizpoduct.model.AppUser
 import com.example.aegizpoduct.model.DemoConfig
 import com.example.aegizpoduct.session.AppSession
-
+import com.example.aegizpoduct.res.drawable.*
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
-import com.example.aegizpoduct.R
+import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.core.R
+import com.aegiz.ui.AegizColors
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(onLogin: (AppRole) -> Unit, onLoginSuccess: () -> Unit = {}) {
@@ -113,7 +116,7 @@ private fun SplashScreen() {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.splash_img),
+            painter = painterResource(id = R.drawable),
             contentDescription = "Splash Aegis",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

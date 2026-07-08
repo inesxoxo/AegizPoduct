@@ -14,7 +14,6 @@ import com.example.aegizpoduct.model.SosEvent
 import com.example.aegizpoduct.session.AppSession
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.aegiz.logic.stableQueuweEventId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
