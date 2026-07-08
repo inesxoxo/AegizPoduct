@@ -6,7 +6,7 @@ enum class AppRole {RESCUER, PENANGGUNG_JAWAB}
 
 data class AppUser (
     val uid: String = "",
-    val username: String = "",
+    val fullname: String = "",
     val email: String = "",
     val role: String = "",
     val createdAt: Long = 0L,

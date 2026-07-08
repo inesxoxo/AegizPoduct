@@ -152,6 +152,64 @@ fun JSONObject.toSosEvent(eventId: String): SosEvent =
         sosPacketTimestamp = optLongOrNull("sos_packet_ts") ?: optLongOrNull("relay_ts") ?: optLongOrNull("sosTs"),
     )
 
+fun JSONObject.toAppUser(): AppUser =
+    AppUser(
+        uid = optStringOrNull("uid").orEmpty(),
+        fullname = optStringOrNull("fullname").orEmpty(),
+        email = optStringOrNull("email").orEmpty(),
+        role = optStringOrNull("role").orEmpty(),
+        createdAt = optLongOrNull("createdAt") ?: optLongOrNull("created_at") ?: 0L,
+    )
+
+fun MissionMeta.toJson(): JSONObject =
+    JSONObject()
+        .put("title", title)
+        .put("description", description)
+        .put("category", category)
+        .put("code", code)
+        .put("status", status)
+        .put("created_by", createdBy)
+        .put("created_by_name", createdByName)
+        .put("created_at", createdAt)
+        .put("started_at", startedAt)
+        .put("finished_at", finishedAt)
+        .apply { if (lat != null) put("lat", lat) }
+        .apply { if (lon != null) put("lon", lon) }
+
+fun MissionMember.toJson(): JSONObject =
+    JSONObject()
+        .put("rescuer_id", rescuerId)
+        .put("name", name)
+        .put("status", status)
+        .put("risk_score", riskScore)
+        .put("risk_status", riskStatus)
+        .put("lat", lat)
+        .put("lon", lon)
+        .put("updated_at", updatedAt ?: System.currentTimeMillis() / 1000)
+
+fun SosEvent.toJson(): String =
+    JSONObject()
+        .put("event_id", eventId)
+        .put("mission_id", missionId)
+        .put("rescuer_id", rescuerId)
+        .put("rescuer_name", rescuerName)
+        .put("device_id", deviceId)
+        .put("status", status)
+        .put("source", source)
+        .put("lat", lat)
+        .put("lon", lon)
+        .put("created_at", createdAt)
+        .put("sos_packet_ts", sosPacketTimestamp)
+        .toString()
+
+fun AppUser.toJson(): JSONObject =
+    JSONObject()
+        .put("uid", uid)
+        .put("fullname", fullname)
+        .put("email", email)
+        .put("role", role)
+        .put("createdAt", createdAt)
+
 fun JSONObject.optStringOrNull(key: String): String? =
     if (has(key) && !isNull(key)) optString(key) else null
 
