@@ -144,7 +144,6 @@ data class GarminHealth(
     val source: String? = null,
 )
 
-
 data class Esp32UiState(
     val telemetry: Esp32Telemetry? = null,
     val sosEvents: List<SosEvent> = emptyList(),
@@ -155,4 +154,17 @@ data class Esp32UiState(
     val missionHistory: List<MissionMeta> = emptyList(),
     val missionMessage: String? = null,
     val missionError: String? = null,
+)
+
+enum class RiskStatus(val label: String) {
+    AMAN("Aman"),
+    WASPADA("Waspada"),
+    BAHAYA("Bahaya"),
+    DARURAT("Darurat"),
+}
+
+data class RiskAssessment(
+    val score: Int,
+    val status: RiskStatus,
+    val reason: String,
 )
