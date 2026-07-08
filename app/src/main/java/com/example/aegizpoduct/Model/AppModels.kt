@@ -87,6 +87,32 @@ data class BleUiState(
     val internetAvailable: Boolean? = null,
     val phoneLat: Double? = null,
     val phoneLon: Double? = null,
-    val sosDeliveryState: SosDeliveryState = SosDeliveryState.NONE,
+//    val sosDeliveryState: SosDeliveryState = SosDeliveryState.NONE,
     val pendingSosCount: Int = 0,
+)
+
+data class MissionMeta(
+    val title: String = DemoConfig.MISSION_NAME,
+    val description: String = "",
+    val category: String = "",
+    val code: String = DemoConfig.MISSION_ID,
+    val status: String = "active",
+    val createdBy: String = DemoConfig.RESPONSIBLE_ID,
+    val createdByName: String = "",
+    val createdAt: Long = 0L,
+    val startedAt: Long = 0L,
+    val finishedAt: Long = 0L,
+    val lat: Double? = null,
+    val lon: Double? = null,
+)
+
+data class MissionMember(
+    val rescuerId: String = DemoConfig.RESCUER_ID,
+    val name: String = DemoConfig.RESCUER_NAME,
+    val status: String = "Aman",
+    val riskScore: Int? = null,
+    val riskStatus: String? = null,
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val updatedAt: Long? = null,
 )
