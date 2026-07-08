@@ -8,6 +8,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:990145377610:android:c5e4716d8487e4d1dbfdb3",
+        "android_client_info": {
+          "package_name": "com.example.aegizpoduct"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEu3riI03Q1f33lacFgdhRKHRcCek4W5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:990145377610:android:1f8a04d964d92d34dbfdb3",
         "android_client_info": {
           "package_name": "com.iotbridge.tester"
