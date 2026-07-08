@@ -332,3 +332,83 @@ suspend fun finishMission(client: FirebaseRestClient, code: String) {
     client.put(FirebaseConfig.missionMetaPath(code), finishedMeta.toJson().toString())
 }
 
+suspend fun reportMember(
+    client: FirebaseRestClient,
+    code: String,
+    health: GarminHealth?,
+    panicActive: Boolean,
+    lat: Double?,
+    lon: Double?,
+    rescuerId: String = AppSession.currentRescuerId(),
+    rescuerName: String = AppSession.currentRescuerName(),
+): RiskAssessment {
+    val assessment = evaluateRisk(health, panicActive)
+    writeMember(
+        client,
+        code,
+        MissionMember(
+            rescuerId = rescuerId,
+            name = rescuerName,
+            status = assessment.status.label,
+            riskScore = assessment.score,
+            riskStatus = assessment.status.name,
+            lat = lat,
+            lon = lon,
+            updatedAt = System.currentTimeMillis() / 1000,
+        ),
+    )
+    return assessment
+}
+
+suspend fun markMemberSos(
+    client: FirebaseRestClient,
+    code: String,
+    rescuerId: String,
+    rescuerName: String,
+    lat: Double?,
+    lon: Double?,
+) {
+    writeMember(
+        client,
+        code,
+        MissionMember(
+            rescuerId = rescuerId,
+            name = rescuerName,
+            status = RiskStatus.DARURAT.label,
+            riskScore = 100,
+            riskStatus = RiskStatus.DARURAT.name,
+            lat = lat,
+            lon = lon,
+            updatedAt = System.currentTimeMillis() / 1000,
+        ),
+    )
+}
+
+suspend fun resolveMember(client: FirebaseRestClient, code: String, rescuerId: String) {
+    // 1. Update status anggota di Firebase agar kembali normal (Aman/0)
+    val patch = JSONObject()
+        .put("status", RiskStatus.AMAN.label)
+        .put("risk_score", 0)
+        .put("risk_status", RiskStatus.AMAN.name)
+    client.patch(FirebaseConfig.memberPath(code, rescuerId), patch.toString())
+
+    runCatching {
+        val rawEvents = client.get(FirebaseConfig.sosEventsPath(code))
+        if (rawEvents.isNotBlank() && rawEvents != "null") {
+            val root = JSONObject(rawEvents)
+            root.keys().forEach { key ->
+                val obj = root.optJSONObject(key)
+                if (obj != null) {
+                    val rId = obj.optString("rescuer_id").takeIf { it.isNotBlank() } ?: obj.optString("sender")
+                    val status = obj.optString("status")
+                    if (rId == rescuerId && status.equals("DARURAT", ignoreCase = true)) {
+                        // Patch status event SOS ini di Firebase agar menjadi RESOLVED
+                        val eventPatch = JSONObject().put("status", "RESOLVED")
+                        client.patch(FirebaseConfig.sosEventPath(code, key), eventPatch.toString())
+                    }
+                }
+            }
+        }
+    }
+}
+
