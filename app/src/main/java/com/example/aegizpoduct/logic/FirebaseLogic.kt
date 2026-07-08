@@ -95,3 +95,43 @@ class FirebaseRestClient(
         }
     }
 }
+
+fun JSONObject.toMissionMeta(fallbackCode: String= DemoConfig.MISSION_ID): MissionMeta =
+    MissionMeta(
+        title = optStringOrNull("title") ?: DemoConfig.MISSION_NAME,
+        description = optStringOrNull("description").orEmpty(),
+        category = optStringOrNull("category").orEmpty(),
+        code = optStringOrNull("code")?: fallbackCode,
+        status = optStringOrNull("status") ?: "active",
+        createdBy = optStringOrNull("createdBy")?: DemoConfig.RESPONSIBLE_ID,
+        createdByName = optStringOrNull("createdByName").orEmpty(),
+        createdAt = optLongOrNull("created_at") ?: 0L,
+        startedAt = optLongOrNull("started_at") ?: 0L,
+        finishedAt = optLongOrNull("finished_at") ?: 0L,
+        lat = optDoubleOrNull("lat"),
+        lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"),
+    )
+
+fun JSONObject.toMissionMember(rescuerId: String) : MissionMember =
+    MissionMember(
+        rescuerId = optStringOrNull("rescuerId") ?: rescuerId,
+        name = optStringOrNull("name") ?: rescuerId,
+        status = optStringOrNull("status") ?: RiskStatus.AMAN.label,
+        riskScore = optIntOrNull("riskScore"),
+        riskStatus = optStringOrNull("riskStatus"),
+        lat = optDoubleOrNull("lat"),
+        lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"),
+        updatedAt = optLongOrNull("updateAt") ?: 0L,
+    )
+
+fun JSONObject.optStringOrNull(key: String): String? =
+    if (has(key) && !isNull(key)) optString(key) else null
+
+fun JSONObject.optIntOrNull(key: String): Int? =
+    if (has(key) && !isNull(key)) optInt(key) else null
+
+fun JSONObject.optLongOrNull(key: String): Long? =
+    if (has(key) && !isNull(key)) optLong(key) else null
+
+fun JSONObject.optDoubleOrNull(key: String): Double? =
+    if (has(key) && !isNull(key)) optDouble(key) else null
