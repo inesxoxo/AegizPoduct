@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.json.JSONArray
 import org.json.JSONObject
-
+import kotlin.toString
 
 fun scanErrorMessage(errorCode: Int): String = when (errorCode) {
     ScanCallback.SCAN_FAILED_ALREADY_STARTED ->
@@ -226,6 +226,7 @@ class BleManager(private val appContext: Context) {
     @SuppressLint("MissingPermission")
     fun disconnect() {
         stopScan()
+        // stopLocationTracking() // Keep location tracking active so map adjusts to phone GPS!
         disconnectInternal()
         _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Terputus", telemetry = null) }
     }
@@ -248,7 +249,7 @@ class BleManager(private val appContext: Context) {
             }
         }
     }
-    
+
     @SuppressLint("MissingPermission")
     private fun pushRescuerIdentity() {
         val payload = "ID|${AppSession.currentRescuerId()}"

@@ -130,7 +130,7 @@ private fun SupervisorDashboardBody(
     state: Esp32UiState,
     bleState: BleUiState,
     onOpenMission: () -> Unit,
-    onViewAllHistory: () -> Unit, 
+    onViewAllHistory: () -> Unit,
     padding: PaddingValues,
 ) {
     val alertEvent = state.sosEvents.firstOrNull { it.status.equals("DARURAT", ignoreCase = true) }

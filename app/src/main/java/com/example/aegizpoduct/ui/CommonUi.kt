@@ -688,7 +688,7 @@ fun MemberRow(member: MissionMember, onResolved: (() -> Unit)? = null) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.avatar_hasan.png),
+                        painter = painterResource(id = R.drawable.avatar_hasan),
                         contentDescription = "Avatar ${member.name}",
                         modifier = Modifier
                             .size(52.dp)
@@ -874,7 +874,7 @@ fun ProfilePhotoSection(size: Dp = 60.dp) {
                     contentDescription = "Foto Profil",
                     modifier = Modifier.size(size).clip(CircleShape),
                     contentScale = ContentScale.Crop,
-                    error = painterResource(R.drawable.avatar_hasan.png),
+                    error = painterResource(R.drawable.avatar_hasan),
                 )
             } else {
                 Avatar(size = size)

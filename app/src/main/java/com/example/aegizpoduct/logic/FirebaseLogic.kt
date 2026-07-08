@@ -22,14 +22,18 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import kotlin.code
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.text.category
+import kotlin.toString
 
 object FirebaseConfig {
     const val DATABASE_URL = "https://aegiz-ede38-default-rtdb.asia-southeast1.firebasedatabase.app/"
     const val AUTH_TOKEN = ""
-    const val USERS_ROOT_PATH ="/users"
-    const val SOS_PATH ="devices/Rescuer01/sos/latest"
+
+    const val USERS_ROOT_PATH = "/users"
+    const val SOS_PATH = "/devices/Rescuer01/sos/latest"
     const val GARMIN_ROOT_PATH = "/garmin_health"
 
     fun garminHealthPath(rescuerId: String): String = "$GARMIN_ROOT_PATH/${rescuerId.normalizedKey()}/latest"
@@ -47,8 +51,9 @@ object FirebaseConfig {
         trim().uppercase().replace(Regex("""[^A-Z0-9_-]"""), "_")
 
     fun String.normalizedKey(): String =
-        trim().replace(Regex("""[.#$\[\]/]"""), "_")
-    }
+        trim()
+            .replace(Regex("""[.#$\[\]/ ]"""), "_")
+}
 
 class FirebaseRestClient(
     private val baseUrl: String = FirebaseConfig.DATABASE_URL,
@@ -96,32 +101,55 @@ class FirebaseRestClient(
     }
 }
 
-fun JSONObject.toMissionMeta(fallbackCode: String= DemoConfig.MISSION_ID): MissionMeta =
+fun JSONObject.toMissionMeta(fallbackCode: String = DemoConfig.MISSION_ID): MissionMeta =
     MissionMeta(
         title = optStringOrNull("title") ?: DemoConfig.MISSION_NAME,
         description = optStringOrNull("description").orEmpty(),
         category = optStringOrNull("category").orEmpty(),
-        code = optStringOrNull("code")?: fallbackCode,
+        code = optStringOrNull("code") ?: fallbackCode,
         status = optStringOrNull("status") ?: "active",
-        createdBy = optStringOrNull("created_by")?: DemoConfig.RESPONSIBLE_ID,
-        createdByName = optStringOrNull("created_by_name").orEmpty(),
+        createdBy = optStringOrNull("created_by") ?: DemoConfig.RESPONSIBLE_ID,
+        createdByName = optStringOrNull("created_by_name").orEmpty(), // nama pembuat misi
         createdAt = optLongOrNull("created_at") ?: 0L,
-        startedAt = optLongOrNull("started_at") ?: 0L,
-        finishedAt = optLongOrNull("finished_at") ?: 0L,
-        lat = optDoubleOrNull("lat"),
-        lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"),
+        startedAt = optLongOrNull("started_at") ?: 0L,   // jam mulai misi (epoch ms)
+        finishedAt = optLongOrNull("finished_at") ?: 0L, // jam selesai misi (epoch ms)
+        lat = optDoubleOrNull("lat"),                     // latitude lokasi misi
+        lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"), // longitude lokasi misi
     )
 
-fun JSONObject.toMissionMember(rescuerId: String) : MissionMember =
+fun JSONObject.toMissionMember(defaultRescuerId: String): MissionMember =
     MissionMember(
-        rescuerId = optStringOrNull("rescuerId") ?: rescuerId,
-        name = optStringOrNull("name") ?: rescuerId,
-        status = optStringOrNull("status") ?: RiskStatus.AMAN.label,
-        riskScore = optIntOrNull("riskScore"),
-        riskStatus = optStringOrNull("risk_status"),
-        lat = optDoubleOrNull("lat"),
-        lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"),
-        updatedAt = optLongOrNull("update_at"),
+        rescuerId =
+            optStringOrNull("rescuer_id")
+                ?: optStringOrNull("rescuerId")
+                ?: defaultRescuerId,
+
+        name =
+            optStringOrNull("name")
+                ?: defaultRescuerId,
+
+        status =
+            optStringOrNull("status")
+                ?: RiskStatus.AMAN.label,
+
+        riskScore =
+            optIntOrNull("risk_score")
+                ?: optIntOrNull("riskScore"),
+
+        riskStatus =
+            optStringOrNull("risk_status")
+                ?: optStringOrNull("riskStatus"),
+
+        lat =
+            optDoubleOrNull("lat"),
+
+        lon =
+            optDoubleOrNull("lon")
+                ?: optDoubleOrNull("lng"),
+
+        updatedAt =
+            optLongOrNull("updated_at")
+                ?: optLongOrNull("updatedAt")
     )
 
 fun JSONObject.toGarminHealth(fallbackRescuerId: String = DemoConfig.RESCUER_ID): GarminHealth =
@@ -169,12 +197,12 @@ fun MissionMeta.toJson(): JSONObject =
         .put("code", code)
         .put("status", status)
         .put("created_by", createdBy)
-        .put("created_by_name", createdByName)
+        .put("created_by_name", createdByName)  // simpan nama pembuat ke Firebase
         .put("created_at", createdAt)
-        .put("started_at", startedAt)
-        .put("finished_at", finishedAt)
-        .apply { if (lat != null) put("lat", lat) }
-        .apply { if (lon != null) put("lon", lon) }
+        .put("started_at", startedAt)   // simpan jam mulai ke Firebase
+        .put("finished_at", finishedAt) // simpan jam selesai ke Firebase
+        .apply { if (lat != null) put("lat", lat) }  // simpan latitude jika ada
+        .apply { if (lon != null) put("lon", lon) }  // simpan longitude jika ada
 
 fun MissionMember.toJson(): JSONObject =
     JSONObject()
@@ -264,11 +292,11 @@ suspend fun createMission(
     description: String,
     category: String,
     createdBy: String = AppSession.currentResponsibleId(),
-    createdByName: String = AppSession.currentResponsibleName(),
-    lat: Double? = null,
-    lon: Double? = null,
+    createdByName: String = AppSession.currentResponsibleName(), // simpan nama supervisor
+    lat: Double? = null,  // latitude lokasi HP supervisor saat misi dibuat
+    lon: Double? = null,  // longitude lokasi HP supervisor saat misi dibuat
 ): MissionMeta {
-    val now = System.currentTimeMillis()
+    val now = System.currentTimeMillis() // catat waktu sekarang sebagai jam mulai
     val meta = MissionMeta(
         title = title.trim(),
         description = description.trim(),
@@ -276,18 +304,14 @@ suspend fun createMission(
         code = code.trim().uppercase(),
         status = "active",
         createdBy = createdBy,
-        createdByName = createdByName,
+        createdByName = createdByName,  // nama supervisor tersimpan ke Firebase
         createdAt = now / 1000,
-        startedAt = now,
-        lat = lat,
-        lon = lon,
+        startedAt = now,  // simpan jam mulai misi (epoch millisecond)
+        lat = lat,        // koordinat lokasi HP supervisor (latitude)
+        lon = lon,        // koordinat lokasi HP supervisor (longitude)
     )
     client.put(FirebaseConfig.missionMetaPath(meta.code), meta.toJson().toString())
     return meta
-}
-
-private suspend fun writeMember(client: FirebaseRestClient, code: String, member: MissionMember) {
-    client.put(FirebaseConfig.memberPath(code, member.rescuerId), member.toJson().toString())
 }
 
 suspend fun joinMission(
@@ -324,9 +348,10 @@ suspend fun getMissionMeta(client: FirebaseRestClient, code: String): MissionMet
 
 suspend fun finishMission(client: FirebaseRestClient, code: String) {
     val meta = getMissionMeta(client, code) ?: return
+    // Salin meta dengan status finished dan catat jam selesai sekarang
     val finishedMeta = meta.copy(
         status = "finished",
-        finishedAt = System.currentTimeMillis(),
+        finishedAt = System.currentTimeMillis(), // catat jam selesai misi (epoch ms)
     )
     client.put(FirebaseConfig.missionMetaPath(code), finishedMeta.toJson().toString())
 }
@@ -342,6 +367,20 @@ suspend fun reportMember(
     rescuerName: String = AppSession.currentRescuerName(),
 ): RiskAssessment {
     val assessment = evaluateRisk(health, panicActive)
+    val currentMember =
+        pollMembers(client, code)
+            .firstOrNull {
+                it.rescuerId.equals(rescuerId, ignoreCase = true)
+            }
+
+    if (currentMember?.status == RiskStatus.DARURAT.label) {
+        return RiskAssessment(
+            score = 100,
+            status = RiskStatus.DARURAT,
+            reason = "SOS sedang aktif"
+
+        )
+    }
     writeMember(
         client,
         code,
@@ -384,12 +423,14 @@ suspend fun markMemberSos(
 }
 
 suspend fun resolveMember(client: FirebaseRestClient, code: String, rescuerId: String) {
+    // 1. Update status anggota di Firebase agar kembali normal (Aman/0)
     val patch = JSONObject()
         .put("status", RiskStatus.AMAN.label)
         .put("risk_score", 0)
         .put("risk_status", RiskStatus.AMAN.name)
     client.patch(FirebaseConfig.memberPath(code, rescuerId), patch.toString())
 
+    // 2. Cari semua event SOS untuk rescuerId ini yang masih berstatus "DARURAT" dan tandai sebagai "RESOLVED"
     runCatching {
         val rawEvents = client.get(FirebaseConfig.sosEventsPath(code))
         if (rawEvents.isNotBlank() && rawEvents != "null") {
@@ -420,6 +461,10 @@ suspend fun pollMembers(client: FirebaseRestClient, code: String): List<MissionM
         .toList()
 }.getOrDefault(emptyList())
 
+private suspend fun writeMember(client: FirebaseRestClient, code: String, member: MissionMember) {
+    client.put(FirebaseConfig.memberPath(code, member.rescuerId), member.toJson().toString())
+}
+
 private fun String.riskPriority(): Int = when {
     equals(RiskStatus.DARURAT.label, ignoreCase = true) -> 4
     equals(RiskStatus.BAHAYA.label, ignoreCase = true) -> 3
@@ -446,6 +491,17 @@ suspend fun sendSosEventToFirebase(client: FirebaseRestClient, event: SosEvent):
     val eventWritten = runCatching {
         client.put(FirebaseConfig.sosEventPath(event.missionId, eventId), json)
     }.isSuccess
+    if ( eventWritten){
+
+        markMemberSos(
+            client = client,
+            code = event.missionId,
+            rescuerId =  event.rescuerId,
+            rescuerName = event.rescuerName,
+            lat = event.lat,
+            lon = event.lon
+        )
+    }
 
     runCatching { client.put(FirebaseConfig.sosLatestPath(event.missionId), json) }
     runCatching {
@@ -486,6 +542,7 @@ suspend fun pollAllMissions(
         }
         .filter {
             if (AppSession.role.value == AppRole.RESCUER) {
+                // Untuk penyelamat (Rescuer), hanya tampilkan misi yang diikutinya (ada di members)
                 val missionObj = root.optJSONObject(it.code)
                 val membersObj = missionObj?.optJSONObject("members")
                 val normalizedRescuerId = AppSession.currentRescuerId().replace(Regex("""[.#$\[\]/]"""), "_")
@@ -498,3 +555,4 @@ suspend fun pollAllMissions(
         .take(limit)
         .toList()
 }.getOrDefault(emptyList())
+

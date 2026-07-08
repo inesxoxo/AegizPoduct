@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            AegizPoductTheme {
+            MaterialTheme {
                 val bleState by bleViewModel.state.collectAsState()
                 val firebaseState by dashboardViewModel.state.collectAsState()
                 val currentRole by AppSession.role.collectAsState()
