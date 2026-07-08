@@ -103,8 +103,8 @@ fun JSONObject.toMissionMeta(fallbackCode: String= DemoConfig.MISSION_ID): Missi
         category = optStringOrNull("category").orEmpty(),
         code = optStringOrNull("code")?: fallbackCode,
         status = optStringOrNull("status") ?: "active",
-        createdBy = optStringOrNull("createdBy")?: DemoConfig.RESPONSIBLE_ID,
-        createdByName = optStringOrNull("createdByName").orEmpty(),
+        createdBy = optStringOrNull("created_by")?: DemoConfig.RESPONSIBLE_ID,
+        createdByName = optStringOrNull("created_by_name").orEmpty(),
         createdAt = optLongOrNull("created_at") ?: 0L,
         startedAt = optLongOrNull("started_at") ?: 0L,
         finishedAt = optLongOrNull("finished_at") ?: 0L,
@@ -118,10 +118,38 @@ fun JSONObject.toMissionMember(rescuerId: String) : MissionMember =
         name = optStringOrNull("name") ?: rescuerId,
         status = optStringOrNull("status") ?: RiskStatus.AMAN.label,
         riskScore = optIntOrNull("riskScore"),
-        riskStatus = optStringOrNull("riskStatus"),
+        riskStatus = optStringOrNull("risk_status"),
         lat = optDoubleOrNull("lat"),
         lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"),
-        updatedAt = optLongOrNull("updateAt") ?: 0L,
+        updatedAt = optLongOrNull("update_at"),
+    )
+
+fun JSONObject.toGarminHealth(fallbackRescuerId: String = DemoConfig.RESCUER_ID): GarminHealth =
+    GarminHealth(
+        rescuerId = optStringOrNull("rescuer_id") ?: fallbackRescuerId,
+        heartRate = optIntOrNull("heart_rate") ?: optIntOrNull("hr"),
+        spo2 = optIntOrNull("spo2") ?: optIntOrNull("spO2"),
+        stress = optIntOrNull("stress"),
+        bodyBattery = optIntOrNull("body_battery") ?: optIntOrNull("body_energy"),
+        respiration = optIntOrNull("respiration") ?: optIntOrNull("respiration_rate"),
+        battery = optIntOrNull("battery"),
+        updatedAt = optLongOrNull("updated_at") ?: optLongOrNull("ts"),
+        source = optStringOrNull("source"),
+    )
+
+fun JSONObject.toSosEvent(eventId: String): SosEvent =
+    SosEvent(
+        eventId = eventId,
+        missionId = optStringOrNull("mission_id") ?: DemoConfig.MISSION_ID,
+        rescuerId = optStringOrNull("rescuer_id") ?: optStringOrNull("sender") ?: DemoConfig.RESCUER_ID,
+        rescuerName = optStringOrNull("rescuer_name") ?: DemoConfig.RESCUER_NAME,
+        deviceId = optStringOrNull("device_id") ?: DemoConfig.DEVICE_ID,
+        status = optStringOrNull("status") ?: "DARURAT",
+        source = optStringOrNull("source") ?: "unknown",
+        lat = optDoubleOrNull("lat"),
+        lon = optDoubleOrNull("lon") ?: optDoubleOrNull("lng"),
+        createdAt = optLongOrNull("created_at") ?: optLongOrNull("ts") ?: 0L,
+        sosPacketTimestamp = optLongOrNull("sos_packet_ts") ?: optLongOrNull("relay_ts") ?: optLongOrNull("sosTs"),
     )
 
 fun JSONObject.optStringOrNull(key: String): String? =
