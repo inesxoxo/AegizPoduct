@@ -226,7 +226,6 @@ class BleManager(private val appContext: Context) {
     @SuppressLint("MissingPermission")
     fun disconnect() {
         stopScan()
-        // stopLocationTracking() // Keep location tracking active so map adjusts to phone GPS!
         disconnectInternal()
         _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Terputus", telemetry = null) }
     }
@@ -249,10 +248,7 @@ class BleManager(private val appContext: Context) {
             }
         }
     }
-
-    // Kirim UID rescuer yang sedang login ke ESP32 lewat BLE, supaya tombol SOS fisik
-    // melaporkan identitas yang benar (bukan ID default firmware). WRITE_TYPE_NO_RESPONSE
-    // tidak ada ACK, jadi dikirim beberapa kali untuk menaikkan peluang sampai.
+    
     @SuppressLint("MissingPermission")
     private fun pushRescuerIdentity() {
         val payload = "ID|${AppSession.currentRescuerId()}"

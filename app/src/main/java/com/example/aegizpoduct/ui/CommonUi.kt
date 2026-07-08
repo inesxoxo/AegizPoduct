@@ -672,7 +672,6 @@ fun MemberRow(member: MissionMember, onResolved: (() -> Unit)? = null) {
     val riskText = member.riskScore?.toString() ?: "-"
 
     if (alert) {
-        // === ALERT STATE (coral/merah muda) — sesuai Figma ===
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = AegizColors.DangerSoft,
@@ -684,14 +683,12 @@ fun MemberRow(member: MissionMember, onResolved: (() -> Unit)? = null) {
                     .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Baris atas: avatar + nama/status | lokasi
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Avatar
                     Image(
-                        painter = painterResource(id = R.drawable.avatar_hasan),
+                        painter = painterResource(id = R.drawable.avatar_hasan.png),
                         contentDescription = "Avatar ${member.name}",
                         modifier = Modifier
                             .size(52.dp)
@@ -777,7 +774,6 @@ fun MemberRow(member: MissionMember, onResolved: (() -> Unit)? = null) {
             }
         }
     } else {
-        // === NORMAL STATE (putih bersih) — tampilkan nama, status berwarna, risk score ===
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = AegizColors.Surface,
@@ -846,26 +842,18 @@ fun Avatar(size: Dp = 40.dp) {
     }
 }
 
-/**
- * Composable foto profil interaktif:
- * - Jika ada foto profil (dari galeri), tampilkan fotonya
- * - Jika tidak ada, tampilkan avatar default
- * - Badge kamera di pojok kanan bawah untuk memilih foto baru
- * - Tombol hapus di bawah avatar (hanya muncul jika ada foto)
- */
+
 @Composable
 fun ProfilePhotoSection(size: Dp = 60.dp) {
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val profilePhotoPath by com.example.aegizpoduct.session.AppSession.profilePhotoUri.collectAsState()
 
-    // Launcher untuk membuka galeri gambar
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
-            // Salin file gambar ke folder internal profiles/ agar persist
             val destDir = File(context.filesDir, "profiles").also { it.mkdirs() }
             val uid = com.example.aegizpoduct.session.AppSession.uid.value ?: "default"
             val destFile = File(destDir, "$uid.jpg")
@@ -880,19 +868,17 @@ fun ProfilePhotoSection(size: Dp = 60.dp) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.size(size), contentAlignment = Alignment.BottomEnd) {
-            // Foto atau avatar default
             if (profilePhotoPath != null) {
                 AsyncImage(
                     model = File(profilePhotoPath!!),
                     contentDescription = "Foto Profil",
                     modifier = Modifier.size(size).clip(CircleShape),
                     contentScale = ContentScale.Crop,
-                    error = painterResource(R.drawable.avatar_hasan),
+                    error = painterResource(R.drawable.avatar_hasan.png),
                 )
             } else {
                 Avatar(size = size)
             }
-            // Badge kamera di pojok kanan bawah
             Surface(
                 modifier = Modifier
                     .size(size * 0.35f)
@@ -910,7 +896,6 @@ fun ProfilePhotoSection(size: Dp = 60.dp) {
                 }
             }
         }
-        // Tombol hapus foto (hanya tampil jika ada foto)
         if (profilePhotoPath != null) {
             TextButton(
                 onClick = { com.example.aegizpoduct.session.AppSession.clearProfilePhoto() },
@@ -949,11 +934,11 @@ fun SirenArt(modifier: Modifier = Modifier, width: Dp = 118.dp) {
 
 @Composable
 fun ProfileBody(
-    roleLabel: String, // Label peran pengguna (misal: "Rescuer" atau "Penanggung Jawab")
+    roleLabel: String, 
     primaryStatus: String,
     secondaryStatus: String,
     state: BleUiState,
-    health: GarminHealth?,   // data vital dari Garmin (null jika tidak tersedia)
+    health: GarminHealth?,
     targetDeviceLabel: String,
     onScan: () -> Unit,
     onDisconnect: () -> Unit,
@@ -963,16 +948,12 @@ fun ProfileBody(
     padding: PaddingValues,
 ) {
     val session = com.example.aegizpoduct.session.AppSession
-    // Ambil nama lengkap pengguna dari sesi aktif via currentRescuerName() (fallback ke roleLabel)
     val displayName = session.currentRescuerName().takeIf { it.isNotBlank() && it != com.example.aegizpoduct.model.DemoConfig.RESCUER_NAME } ?: roleLabel
-    // Ambil email pengguna dari sesi aktif via StateFlow
     val emailValue = session.email.value
 
     AegizScrollContent(padding = padding, top = 54.dp) {
-        // Judul halaman Profil di tengah
         CenterTitle("Profil")
 
-        // Card utama profil pengguna: menampilkan nama dan peran
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -981,11 +962,9 @@ fun ProfileBody(
         ) {
             Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Foto profil interaktif dengan tombol kamera dan opsi hapus
                     ProfilePhotoSection(size = 60.dp)
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        // Nama profil pengguna ditampilkan sebagai teks utama yang besar dan tebal
                         Text(
                             text = displayName,
                             color = AegizColors.Text,
@@ -996,7 +975,6 @@ fun ProfileBody(
                             maxLines = 1,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
-                        // Peran pengguna ditampilkan di bawah nama (misal: Rescuer / Penanggung Jawab)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1006,7 +984,7 @@ fun ProfileBody(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = roleLabel, // Menampilkan label peran dari parameter
+                                    text = roleLabel, 
                                     color = AegizColors.Red,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
@@ -1014,7 +992,6 @@ fun ProfileBody(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                 )
                             }
-                            // Indikator status koneksi (hijau jika BLE tersambung)
                             Surface(
                                 color = if (state.stage == BleStage.CONNECTED) AegizColors.GreenSoft else AegizColors.DangerSoft,
                                 shape = RoundedCornerShape(6.dp)
@@ -1031,7 +1008,6 @@ fun ProfileBody(
                         }
                     }
                 }
-                // Informasi tambahan: email pengguna dari sesi aktif
                 if (emailValue != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Person, contentDescription = null, tint = AegizColors.Muted, modifier = Modifier.size(16.dp))
@@ -1043,7 +1019,6 @@ fun ProfileBody(
                         )
                     }
                 }
-                // Status deskriptif koneksi perangkat (misalnya: pesan dari BLE)
                 Text(
                     text = secondaryStatus,
                     color = AegizColors.Muted,
@@ -1054,16 +1029,12 @@ fun ProfileBody(
             }
         }
 
-        // Card status perangkat BLE (Bluetooth & LoRa)
         AegizDeviceStatusCard(title = targetDeviceLabel, state = state, receiverMode = targetDeviceLabel.contains("Penanggung", ignoreCase = true))
 
-        // Card status Garmin (hanya ditampilkan jika data health tersedia atau rolenya adalah Rescuer)
-        // null artinya tidak ditampilkan (misal: untuk role Pengawas/Posko)
         if (health != null || roleLabel.equals("Rescuer", ignoreCase = true)) {
             GarminDeviceStatusCard(health = health)
         }
 
-        // Tombol-tombol aksi perangkat
         Button(
             onClick = onScan,
             modifier = Modifier.fillMaxWidth().height(54.dp),
@@ -1129,7 +1100,7 @@ fun ActivityRow(
     title: String,
     subtitle: String,
     color: androidx.compose.ui.graphics.Color,
-    onClick: (() -> Unit)? = null, // optional: jika ada, baris ini bisa diklik
+    onClick: (() -> Unit)? = null,
 ) {
     Card(
         modifier = Modifier
@@ -1148,7 +1119,6 @@ fun ActivityRow(
                 Text(title, color = AegizColors.Text, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 Text(subtitle, color = AegizColors.Muted, fontSize = 12.sp)
             }
-            // Tampilkan ikon panah kanan jika item bisa diklik
             if (onClick != null) {
                 Icon(
                     Icons.Default.ChevronRight,
