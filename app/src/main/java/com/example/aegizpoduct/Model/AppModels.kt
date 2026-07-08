@@ -47,3 +47,35 @@ object DemoConfig{
         ),
     )
 }
+
+enum class BleStage { IDLE, BLUETOOTH_OFF, NO_PERMISSION, SCANNING, NOT_FOUND, CONNECTING, CONNECTED, DISCONNECTED, ERROR }
+
+object BleConfig {
+    val RESCUER_DEVICE_NAMES = listOf("rescuer 01", "Rescuer01")
+    val RECEIVER_DEVICE_NAMES = listOf("penanggung jawab 01", "Penanggungjawab01")
+    val DEVICE_NAMES = RESCUER_DEVICE_NAMES + RECEIVER_DEVICE_NAMES
+    val NUS_SERVICE_UUID: UUID = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
+    val NUS_TX_UUID: UUID = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
+    val NUS_RX_UUID: UUID = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E")
+    val CCCD_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+    const val SCAN_TIMEOUT_MS = 12_000L
+}
+
+data class Esp32Telementry(
+    val deviceId: String? = null,
+    val measuredAtEPoch: Long? = null,
+    val gpsValid: Boolean = false,
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val charsProcessed: Long? = null,
+    val loraOk: Boolean? = null,
+    val wifiOk: Boolean? = null,
+    val sosActive: Boolean = false,
+    val sosSender: String? = null,
+    val sosDeviceId: String? = null,
+    val sosLat: Double? = null,
+    val sosLon: Double? = null,
+    val sosSource: String? = null,
+    val sosPacketTimestamp: Long? = null,
+    val sosStartMs: Long? = null,
+)
