@@ -14,6 +14,7 @@ import com.example.aegizpoduct.Model.SosEvent
 import com.example.aegizpoduct.session.AppSession
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.aegiz.logic.stableQueuweEventId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -401,7 +402,6 @@ suspend fun resolveMember(client: FirebaseRestClient, code: String, rescuerId: S
                     val rId = obj.optString("rescuer_id").takeIf { it.isNotBlank() } ?: obj.optString("sender")
                     val status = obj.optString("status")
                     if (rId == rescuerId && status.equals("DARURAT", ignoreCase = true)) {
-                        // Patch status event SOS ini di Firebase agar menjadi RESOLVED
                         val eventPatch = JSONObject().put("status", "RESOLVED")
                         client.patch(FirebaseConfig.sosEventPath(code, key), eventPatch.toString())
                     }

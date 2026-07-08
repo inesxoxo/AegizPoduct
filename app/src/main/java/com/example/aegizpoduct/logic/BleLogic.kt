@@ -1,4 +1,4 @@
-package com.aegiz.logic
+package com.example.aegizpoduct.logic
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -97,7 +97,7 @@ fun parseBleLine(line: String): Esp32Telemetry {
         sosLon = sosLon,
         sosSource = sosSource,
         sosPacketTimestamp = sosPacketTimestamp,
-        measuredAtEPoch = System.currentTimeMillis() / 1000,
+        measuredAtEpoch = System.currentTimeMillis() / 1000,
     )
 }
 
@@ -121,7 +121,7 @@ private fun parsePipeSos(line: String): Esp32Telemetry? {
         sosLon = lon,
         sosSource = parts[5],
         sosPacketTimestamp = packetTimestamp,
-        measuredAtEPoch = packetTimestamp ?: System.currentTimeMillis() / 1000,
+        measuredAtEpoch = packetTimestamp ?: System.currentTimeMillis() / 1000,
     )
 }
 

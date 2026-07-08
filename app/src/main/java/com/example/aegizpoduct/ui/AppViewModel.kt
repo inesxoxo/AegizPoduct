@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aegizpoduct.logic.BleManager
+import com.example.aegizpoduct.logic.BleLogic
 import com.example.aegizpoduct.logic.FirebaseConfig
 import com.example.aegizpoduct.logic.FirebaseRestClient
 import com.example.aegizpoduct.logic.createMission
