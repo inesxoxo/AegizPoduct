@@ -385,7 +385,6 @@ suspend fun markMemberSos(
 }
 
 suspend fun resolveMember(client: FirebaseRestClient, code: String, rescuerId: String) {
-    // 1. Update status anggota di Firebase agar kembali normal (Aman/0)
     val patch = JSONObject()
         .put("status", RiskStatus.AMAN.label)
         .put("risk_score", 0)
