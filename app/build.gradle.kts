@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.aegiz"
+    namespace = "com.example.aegizpoduct"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.aegiz"
+        applicationId = "com.example.aegizpoduct"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -67,7 +67,6 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.osmdroid)
 
-    // Coil - library image loading asinkron (untuk foto profil dari galeri)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     testImplementation("junit:junit:4.13.2")
