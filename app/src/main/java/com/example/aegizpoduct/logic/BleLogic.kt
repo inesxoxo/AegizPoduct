@@ -1,5 +1,6 @@
 package com.example.aegizpoduct.logic
 
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -31,7 +32,6 @@ import com.example.aegizpoduct.Model.BleUiState
 import com.example.aegizpoduct.Model.BleStage
 import com.example.aegizpoduct.Model.Esp32Telemetry
 import com.example.aegizpoduct.session.AppSession
-import kotlin.text.Regex
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -237,12 +237,12 @@ class BleManager( private val appContext: Context) {
     }
 }
 
-@SuppressLint("MissingPermission")
-fun disconnect() {
-    stopScan()
-    disconnectInternal()
-    _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Terputus", telemetry = null) }
-}
+    @SuppressLint("MissingPermission")
+    fun disconnect() {
+        stopScan()
+        disconnectInternal()
+        _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Terputus", telemetry = null) }
+    }
 
 @SuppressLint("MissingPermission")
 fun sendLine(text: String): Boolean {
