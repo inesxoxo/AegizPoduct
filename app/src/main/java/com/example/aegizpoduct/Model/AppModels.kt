@@ -29,7 +29,7 @@ object DemoConfig{
     const val RESCUER_NAME = "Rescuer 01"
     const val DEVICE_ID = "DEV001"
 
-    val account = listOf(
+    val accounts = listOf(
         DemoAccount(
             username = "penanggungJawab01",
             password = "demo123",

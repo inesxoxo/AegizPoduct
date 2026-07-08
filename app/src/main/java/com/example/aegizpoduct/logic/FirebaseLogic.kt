@@ -4,6 +4,7 @@ import androidx.privacysandbox.ads.adservices.adid.AdId
 import com.example.aegizpoduct.Model.AppRole
 import com.example.aegizpoduct.Model.AppUser
 import com.example.aegizpoduct.Model.DemoConfig
+import com.example.aegizpoduct.Model.DemoAccount
 import com.example.aegizpoduct.Model.MissionMeta
 import com.example.aegizpoduct.Model.GarminHealth
 import com.example.aegizpoduct.Model.MissionMember
@@ -221,3 +222,40 @@ fun JSONObject.optLongOrNull(key: String): Long? =
 
 fun JSONObject.optDoubleOrNull(key: String): Double? =
     if (has(key) && !isNull(key)) optDouble(key) else null
+
+fun login(username: String, password: String): DemoAccount? =
+    DemoConfig.accounts.firstOrNull {
+        it.username.equals(username.trim(), ignoreCase = true) && it.password == password
+    }
+
+suspend fun saveUserToFirebase(client: FirebaseRestClient, user: AppUser) {
+    require(user.uid.isNotBlank()) { "uid tidak boleh kosong" }
+    client.put("${FirebaseConfig.USERS_ROOT_PATH}/${user.uid}", user.toJson().toString())
+}
+
+suspend fun fetchUserFromFirebase(client: FirebaseRestClient, uid: String): AppUser? = runCatching {
+    val raw = client.get("${FirebaseConfig.USERS_ROOT_PATH}/$uid")
+    if (raw.isBlank() || raw == "null") null else JSONObject(raw).toAppUser()
+}.getOrNull()
+
+suspend fun loginWithEmailPassword(email: String, pass: String): FirebaseUser =
+    suspendCancellableCoroutine { cont ->
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, pass)
+            .addOnSuccessListener { res ->
+                val u = res.user
+                if (u != null) cont.resume(u) else cont.resumeWithException(IllegalStateException("User tidak ditemukan"))
+            }
+            .addOnFailureListener { e -> cont.resumeWithException(e) }
+    }
+
+suspend fun registerWithEmailPassword(email: String, pass: String): FirebaseUser =
+    suspendCancellableCoroutine { cont ->
+        FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, pass)
+            .addOnSuccessListener { res ->
+                val u = res.user
+                if (u != null) cont.resume(u) else cont.resumeWithException(IllegalStateException("Registrasi gagal"))
+            }
+            .addOnFailureListener { e -> cont.resumeWithException(e) }
+    }
+
+
