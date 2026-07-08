@@ -1084,7 +1084,7 @@ fun ProfileBody(
         ) {
             Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(Modifier.width(10.dp))
-            Text("GANTI PERAN (RESCUER / POSKO)", fontWeight = FontWeight.Bold, fontSize = 15.sp, fontFamily = PlusJakartaSans)
+            Text("LOGOUT", fontWeight = FontWeight.Bold, fontSize = 15.sp, fontFamily = PlusJakartaSans)
         }
     }
 }

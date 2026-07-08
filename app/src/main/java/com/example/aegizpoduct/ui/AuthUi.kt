@@ -269,36 +269,36 @@ private fun LoginScreen(onLogin: (AppRole) -> Unit, onLoginSuccess: () -> Unit =
                 .background(Color.Black.copy(alpha = 0.65f))
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        // Column(
+        //     modifier = Modifier
+        //         .fillMaxSize()
+        //         .statusBarsPadding()
+        //         .padding(horizontal = 24.dp)
+        //         .verticalScroll(rememberScrollState()),
+        //     verticalArrangement = Arrangement.Center,
+        //     horizontalAlignment = Alignment.CenterHorizontally
+        // ) {
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 28.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Security,
-                    contentDescription = null,
-                    tint = Color(0xFFC62828),
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "Aegiz",
-                    color = Color.White,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp
-                )
-            }
+        //     Row(
+        //         verticalAlignment = Alignment.CenterVertically,
+        //         horizontalArrangement = Arrangement.Center,
+        //         modifier = Modifier.fillMaxWidth().padding(bottom = 28.dp)
+        //     ) {
+        //         Icon(
+        //             imageVector = Icons.Default.Security,
+        //             contentDescription = null,
+        //             tint = Color(0xFFC62828),
+        //             modifier = Modifier.size(32.dp)
+        //         )
+        //         Spacer(modifier = Modifier.width(10.dp))
+        //         Text(
+        //             text = "Aegiz",
+        //             color = Color.White,
+        //             fontSize = 28.sp,
+        //             fontWeight = FontWeight.Bold,
+        //             letterSpacing = 0.5.sp
+        //         )
+        //     }
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -582,43 +582,43 @@ private fun LoginScreen(onLogin: (AppRole) -> Unit, onLoginSuccess: () -> Unit =
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Spacer(Modifier.height(1.dp).weight(1f).background(Color.White.copy(alpha = 0.25f))) // Garis tipis pembatas kiri
-                Text(
-                    text = "AKSES DEMO CEPAT",
-                    color = Color.White.copy(alpha = 0.65f),
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(1.dp).weight(1f).background(Color.White.copy(alpha = 0.25f)))
-            }
+            // Spacer(modifier = Modifier.height(24.dp))
+            // Row(
+            //     modifier = Modifier.fillMaxWidth(),
+            //     verticalAlignment = Alignment.CenterVertically,
+            //     horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // ) {
+            //     Spacer(Modifier.height(1.dp).weight(1f).background(Color.White.copy(alpha = 0.25f))) // Garis tipis pembatas kiri
+            //     Text(
+            //         text = "AKSES DEMO CEPAT",
+            //         color = Color.White.copy(alpha = 0.65f),
+            //         fontFamily = FontFamily.Monospace,
+            //         fontSize = 10.sp,
+            //         fontWeight = FontWeight.Bold
+            //     )
+            //     Spacer(Modifier.height(1.dp).weight(1f).background(Color.White.copy(alpha = 0.25f)))
+            // }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            // Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                DemoRoleButton("Rescuer (Tim)", Modifier.weight(1f)) {
-                    AppSession.setUser(DemoConfig.RESCUER_ID, DemoConfig.RESCUER_NAME, "rescuer01@aegiz.id", AppRole.RESCUER)
-                    onLogin(AppRole.RESCUER)
-                    onLoginSuccess()
-                }
-                DemoRoleButton("Posko (PJ)", Modifier.weight(1f)) {
-                    AppSession.setUser(DemoConfig.RESPONSIBLE_ID, DemoConfig.RESPONSIBLE_NAME, "penanggungjawab@aegiz.id", AppRole.PENANGGUNG_JAWAB)
-                    onLogin(AppRole.PENANGGUNG_JAWAB)
-                    onLoginSuccess()
-                }
-            }
+            // Row(
+            //     modifier = Modifier.fillMaxWidth(),
+            //     horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // ) {
+            //     DemoRoleButton("Rescuer (Tim)", Modifier.weight(1f)) {
+            //         AppSession.setUser(DemoConfig.RESCUER_ID, DemoConfig.RESCUER_NAME, "rescuer01@aegiz.id", AppRole.RESCUER)
+            //         onLogin(AppRole.RESCUER)
+            //         onLoginSuccess()
+            //     }
+            //     DemoRoleButton("Posko (PJ)", Modifier.weight(1f)) {
+            //         AppSession.setUser(DemoConfig.RESPONSIBLE_ID, DemoConfig.RESPONSIBLE_NAME, "penanggungjawab@aegiz.id", AppRole.PENANGGUNG_JAWAB)
+            //         onLogin(AppRole.PENANGGUNG_JAWAB)
+            //         onLoginSuccess()
+            //     }
+            // }
 
             Spacer(Modifier.height(32.dp))
-            Text("Sistem Online • Keamanan Terenkripsi", color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+            Text("MieAyamBaksoJumboEsJeruk", color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
             Spacer(Modifier.height(24.dp))
         }
     }
