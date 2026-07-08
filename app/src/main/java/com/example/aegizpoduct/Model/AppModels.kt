@@ -1,6 +1,5 @@
 package com.example.aegizpoduct.Model
 
-import androidx.privacysandbox.ads.adservices.adid.AdId
 import java.util.UUID
 
 enum class AppRole {RESCUER, PENANGGUNG_JAWAB}
@@ -87,7 +86,7 @@ data class BleUiState(
     val internetAvailable: Boolean? = null,
     val phoneLat: Double? = null,
     val phoneLon: Double? = null,
-//    val sosDeliveryState: SosDeliveryState = SosDeliveryState.NONE,
+    val sosDeliveryState: SosDeliveryState = SosDeliveryState.NONE,
     val pendingSosCount: Int = 0,
 )
 
@@ -115,4 +114,45 @@ data class MissionMember(
     val lat: Double? = null,
     val lon: Double? = null,
     val updatedAt: Long? = null,
+)
+
+enum class SosDeliveryState { NONE, SENDING, SENT, QUEUED, FAILED }
+
+data class SosEvent(
+    val eventId: String? = null,
+    val missionId: String = DemoConfig.MISSION_ID,
+    val rescuerId: String = DemoConfig.RESCUER_ID,
+    val rescuerName: String = DemoConfig.RESCUER_NAME,
+    val deviceId: String = DemoConfig.DEVICE_ID,
+    val status: String = "DARURAT",
+    val source: String = "unknown",
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val createdAt: Long = 0L,
+    val sosPacketTimestamp: Long? = null,
+)
+
+data class GarminHealth(
+    val rescuerId: String = DemoConfig.RESCUER_ID,
+    val heartRate: Int? = null,
+    val spo2: Int? = null,
+    val stress: Int? = null,
+    val bodyBattery: Int? = null,
+    val respiration: Int? = null,
+    val battery: Int? = null,
+    val updatedAt: Long? = null,
+    val source: String? = null,
+)
+
+
+data class Esp32UiState(
+    val telemetry: Esp32Telemetry? = null,
+    val sosEvents: List<SosEvent> = emptyList(),
+    val garmin: GarminHealth? = null,
+    val activeMissionCode: String? = null,
+    val missionMeta: MissionMeta? = null,
+    val members: List<MissionMember> = emptyList(),
+    val missionHistory: List<MissionMeta> = emptyList(),
+    val missionMessage: String? = null,
+    val missionError: String? = null,
 )
