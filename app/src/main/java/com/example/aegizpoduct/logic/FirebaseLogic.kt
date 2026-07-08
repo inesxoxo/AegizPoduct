@@ -411,3 +411,92 @@ suspend fun resolveMember(client: FirebaseRestClient, code: String, rescuerId: S
     }
 }
 
+suspend fun pollMembers(client: FirebaseRestClient, code: String): List<MissionMember> = runCatching {
+    val raw = client.get(FirebaseConfig.missionMembersPath(code))
+    if (raw.isBlank() || raw == "null") return@runCatching emptyList()
+    val root = JSONObject(raw)
+    root.keys().asSequence()
+        .mapNotNull { key -> root.optJSONObject(key)?.toMissionMember(key) }
+        .sortedWith(compareByDescending<MissionMember> { it.status.riskPriority() }.thenBy { it.name })
+        .toList()
+}.getOrDefault(emptyList())
+
+private fun String.riskPriority(): Int = when {
+    equals(RiskStatus.DARURAT.label, ignoreCase = true) -> 4
+    equals(RiskStatus.BAHAYA.label, ignoreCase = true) -> 3
+    equals(RiskStatus.WASPADA.label, ignoreCase = true) -> 2
+    else -> 1
+}
+
+suspend fun pollSosEvents(client: FirebaseRestClient, code: String): List<SosEvent> = runCatching {
+    val raw = client.get(FirebaseConfig.sosEventsPath(code))
+    if (raw.isBlank() || raw == "null") return@runCatching emptyList()
+    val root = JSONObject(raw)
+    root.keys().asSequence()
+        .mapNotNull { key -> root.optJSONObject(key)?.toSosEvent(key) }
+        .sortedByDescending { it.createdAt }
+        .take(20)
+        .toList()
+}.getOrDefault(emptyList())
+
+suspend fun sendSosEventToFirebase(client: FirebaseRestClient, event: SosEvent): Boolean {
+    if (!FirebaseConfig.isConfigured()) return false
+    val eventId = event.stableQueueEventId()
+    val json = event.copy(eventId = eventId).toJson()
+
+    val eventWritten = runCatching {
+        client.put(FirebaseConfig.sosEventPath(event.missionId, eventId), json)
+    }.isSuccess
+
+    runCatching { client.put(FirebaseConfig.sosLatestPath(event.missionId), json) }
+    runCatching {
+        client.put(
+            FirebaseConfig.SOS_PATH,
+            JSONObject()
+                .put("active", true)
+                .put("sender", event.rescuerId)
+                .put("ts", event.createdAt)
+                .put("source", event.source)
+                .put("lat", event.lat)
+                .put("lon", event.lon)
+                .put("event_id", eventId)
+                .toString(),
+        )
+    }
+    return eventWritten
+}
+
+suspend fun pollGarminHealth(client: FirebaseRestClient, rescuerId: String = AppSession.currentRescuerId()): GarminHealth? = runCatching {
+    val raw = client.get(FirebaseConfig.garminHealthPath(rescuerId))
+    if (raw.isBlank() || raw == "null") return@runCatching null
+    JSONObject(raw).toGarminHealth(rescuerId)
+}.getOrNull()
+
+suspend fun pollAllMissions(
+    client: FirebaseRestClient,
+    filterByCreator: String? = if (AppSession.role.value == AppRole.PENANGGUNG_JAWAB) AppSession.currentResponsibleId() else null,
+    limit: Int = 20
+): List<MissionMeta> = runCatching {
+    val raw = client.get("/missions")
+    if (raw.isBlank() || raw == "null") return@runCatching emptyList()
+    val root = JSONObject(raw)
+    root.keys().asSequence()
+        .mapNotNull { code ->
+            val obj = root.optJSONObject(code)?.optJSONObject("meta") ?: root.optJSONObject(code)
+            obj?.toMissionMeta(code)
+        }
+        .filter {
+            if (AppSession.role.value == AppRole.RESCUER) {
+                // Untuk penyelamat (Rescuer), hanya tampilkan misi yang diikutinya (ada di members)
+                val missionObj = root.optJSONObject(it.code)
+                val membersObj = missionObj?.optJSONObject("members")
+                val normalizedRescuerId = AppSession.currentRescuerId().replace(Regex("""[.#$\[\]/]"""), "_")
+                membersObj != null && (membersObj.has(normalizedRescuerId) || membersObj.has(AppSession.currentRescuerId()))
+            } else {
+                filterByCreator == null || it.createdBy == filterByCreator
+            }
+        }
+        .sortedByDescending { it.createdAt }
+        .take(limit)
+        .toList()
+}.getOrDefault(emptyList())

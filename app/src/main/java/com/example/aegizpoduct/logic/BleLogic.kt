@@ -1,4 +1,4 @@
-package com.example.aegizpoduct.logic
+package com.aegiz.logic
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -17,21 +17,21 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Looper
-import android.os.Handler
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Handler
+import android.os.Looper
+import android.os.ParcelUuid
 import androidx.core.content.ContextCompat
 import com.example.aegizpoduct.Model.AppRole
-import com.example.aegizpoduct.Model.DemoConfig
-import com.example.aegizpoduct.Model.SosEvent
 import com.example.aegizpoduct.Model.BleConfig
-import com.example.aegizpoduct.Model.BleUiState
 import com.example.aegizpoduct.Model.BleStage
+import com.example.aegizpoduct.Model.BleUiState
+import com.example.aegizpoduct.Model.DemoConfig
 import com.example.aegizpoduct.Model.Esp32Telemetry
+import com.example.aegizpoduct.Model.SosEvent
 import com.example.aegizpoduct.session.AppSession
-import kotlin.text.Regex
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,50 +39,52 @@ import kotlinx.coroutines.flow.update
 import org.json.JSONArray
 import org.json.JSONObject
 
+
 fun scanErrorMessage(errorCode: Int): String = when (errorCode) {
     ScanCallback.SCAN_FAILED_ALREADY_STARTED ->
-        "Scan ble, reconnect"
+        "Scan BLE sudah berjalan. Coba tekan Putuskan, lalu scan ulang."
     ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED ->
-        "Scan BLE gagal, matikan dan nyalakan bluetoth hp"
+        "Scan BLE gagal registrasi. Matikan/nyalakan Bluetooth lalu scan ulang."
     ScanCallback.SCAN_FAILED_INTERNAL_ERROR ->
-        "Scan BLE gagal scan ulang."
+        "Scan BLE gagal karena error internal Android. Matikan/nyalakan Bluetooth lalu scan ulang."
     ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED ->
-        "HP tidak mendukung BLE"
+        "HP tidak mendukung mode scan BLE yang dibutuhkan."
     ScanCallback.SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES ->
-        "Bluetooth HP penuh"
+        "Resource Bluetooth HP penuh. Tutup app BLE lain lalu scan ulang."
     else -> "Scan gagal (kode $errorCode)"
 }
 
-fun parseBleLine(line : String) : Esp32Telemetry{
-    parsePipeSos(line)?.let{return it}
+fun parseBleLine(line: String): Esp32Telemetry {
+    parsePipeSos(line)?.let { return it }
+
     fun grab(key: String): String? =
         Regex("""\b$key=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
     val lat = grab("lat")?.toDoubleOrNull()
     val lng = grab("lng")?.toDoubleOrNull()
     val chars = grab("chars")?.toLongOrNull()
-    val gpsFIX = line.contains("GPS:FIX") && lat != null && lng != null
-    val lora = when{
+    val gpsFix = line.contains("GPS:FIX") && lat != null && lng != null
+    val lora = when {
         line.contains("LoRa:OK") -> true
         line.contains("LoRa:FAIL") -> false
         else -> null
     }
-    val wifi = when{
-        line.contains("WiFI:OK") -> true
-        line.contains("WIFI:OFF") -> false
+    val wifi = when {
+        line.contains("WiFi:OK") -> true
+        line.contains("WiFi:OFF") -> false
         else -> null
     }
     val sosActive = line.contains("SOS:ACTIVE")
-    val sosSender =  Regex("""\bsender=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
-    val sosDeviceID = Regex("""\bdevice=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
+    val sosSender = Regex("""\bsender=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
+    val sosDeviceId = Regex("""\bdevice=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
     val sosLat = grab("sosLat")?.toDoubleOrNull() ?: if (sosActive) lat else null
-    val sosLng = grab("sosLng")?.toDoubleOrNull() ?: grab("sosLon")?.toDoubleOrNull() ?: if (sosActive) lng else null
+    val sosLon = grab("sosLng")?.toDoubleOrNull() ?: grab("sosLon")?.toDoubleOrNull() ?: if (sosActive) lng else null
     val sosSource = Regex("""\bsource=([^\s|]+)""").find(line)?.groupValues?.getOrNull(1)
     val sosPacketTimestamp = grab("sosTs")?.toLongOrNull()
         ?: grab("sosPacketTs")?. toLongOrNull()
         ?: grab("sos_packet_ts")?.toLongOrNull()
-    return Esp32Telemetry (
-        deviceId = sosDeviceID,
-        gpsValid = gpsFIX,
+    return Esp32Telemetry(
+        deviceId = sosDeviceId,
+        gpsValid = gpsFix,
         lat = lat,
         lng = lng,
         charsProcessed = chars,
@@ -90,14 +92,16 @@ fun parseBleLine(line : String) : Esp32Telemetry{
         wifiOk = wifi,
         sosActive = sosActive,
         sosSender = sosSender,
+        sosDeviceId = sosDeviceId,
         sosLat = sosLat,
-        sosLon = sosLng,
+        sosLon = sosLon,
         sosSource = sosSource,
         sosPacketTimestamp = sosPacketTimestamp,
-        measuredAtEPoch = System.currentTimeMillis() / 1000
+        measuredAtEPoch = System.currentTimeMillis() / 1000,
     )
 }
-private  fun parsePipeSos(line: String): Esp32Telemetry?{
+
+private fun parsePipeSos(line: String): Esp32Telemetry? {
     val parts = line.trim().split('|')
     if (parts.size < 6 || !parts[0].equals("SOS", ignoreCase = true)) return null
     val lat = parts[3].toDoubleOrNull()
@@ -117,22 +121,27 @@ private  fun parsePipeSos(line: String): Esp32Telemetry?{
         sosLon = lon,
         sosSource = parts[5],
         sosPacketTimestamp = packetTimestamp,
-        measuredAtEPoch = System.currentTimeMillis() / 1000
+        measuredAtEPoch = packetTimestamp ?: System.currentTimeMillis() / 1000,
     )
 }
 
-fun bleNamesFor(Role : AppRole): List<String> = when(Role){
+
+fun bleNamesFor(role: AppRole): List<String> = when (role) {
     AppRole.RESCUER -> BleConfig.RESCUER_DEVICE_NAMES
     AppRole.PENANGGUNG_JAWAB -> BleConfig.RECEIVER_DEVICE_NAMES
 }
-class BleManager( private val appContext: Context) {
+
+class BleManager(private val appContext: Context) {
+
     private val _state = MutableStateFlow(BleUiState())
     val state: StateFlow<BleUiState> = _state.asStateFlow()
 
     private val mainHandler = Handler(Looper.getMainLooper())
+
     private val bluetoothManager: BluetoothManager? =
         appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
     private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
+
     private var gatt: BluetoothGatt? = null
     private var rxChar: BluetoothGattCharacteristic? = null
     private var scanning = false
@@ -159,12 +168,7 @@ class BleManager( private val appContext: Context) {
         scanTargetNames = targetNames.ifEmpty { BleConfig.DEVICE_NAMES }
         val a = adapter
         if (a == null) {
-            _state.update {
-                it.copy(
-                    stage = BleStage.ERROR,
-                    message = "Perangkat tidak punya Bluetooth"
-                )
-            }
+            _state.update { it.copy(stage = BleStage.ERROR, message = "Perangkat tidak punya Bluetooth") }
             return
         }
         if (!a.isEnabled) {
@@ -172,12 +176,7 @@ class BleManager( private val appContext: Context) {
             return
         }
         if (!hasScanPermission()) {
-            _state.update {
-                it.copy(
-                    stage = BleStage.NO_PERMISSION,
-                    message = "Izin Bluetooth belum diberikan"
-                )
-            }
+            _state.update { it.copy(stage = BleStage.NO_PERMISSION, message = "Izin Bluetooth belum diberikan") }
             return
         }
 
@@ -185,12 +184,7 @@ class BleManager( private val appContext: Context) {
         if (scanning) stopScan()
         disconnectInternal()
         val scanner = a.bluetoothLeScanner ?: run {
-            _state.update {
-                it.copy(
-                    stage = BleStage.ERROR,
-                    message = "Scanner BLE tidak tersedia"
-                )
-            }
+            _state.update { it.copy(stage = BleStage.ERROR, message = "Scanner BLE tidak tersedia") }
             return
         }
         runCatching { scanner.stopScan(scanCallback) }
@@ -201,13 +195,7 @@ class BleManager( private val appContext: Context) {
             .build()
 
         scanning = true
-        _state.update {
-            it.copy(
-                stage = BleStage.SCANNING,
-                message = "Mencari ESP32…",
-                telemetry = null
-            )
-        }
+        _state.update { it.copy(stage = BleStage.SCANNING, message = "Mencari ESP32…", telemetry = null) }
         runCatching {
             scanner.startScan(filters, settings, scanCallback)
         }.onFailure { e ->
@@ -235,275 +223,279 @@ class BleManager( private val appContext: Context) {
             }
         }, BleConfig.SCAN_TIMEOUT_MS)
     }
-}
 
-@SuppressLint("MissingPermission")
-fun disconnect() {
-    stopScan()
-    disconnectInternal()
-    _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Terputus", telemetry = null) }
-}
-
-@SuppressLint("MissingPermission")
-fun sendLine(text: String): Boolean {
-    val g = gatt ?: return false
-    val ch = rxChar ?: return false
-    if (!hasConnectPermission()) return false
-    val bytes = text.toByteArray(Charsets.UTF_8)
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        g.writeCharacteristic(ch, bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) ==
-                BluetoothGatt.GATT_SUCCESS
-    } else {
-        @Suppress("DEPRECATION")
-        run {
-            ch.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-            ch.value = bytes
-            g.writeCharacteristic(ch)
-        }
-    }
-}
-
-@SuppressLint("MissingPermission")
-private fun pushRescuerIdentity() {
-    val payload = "ID|${AppSession.currentRescuerId()}"
-    sendLine(payload)
-    mainHandler.postDelayed({ sendLine(payload) }, 400)
-    mainHandler.postDelayed({ sendLine(payload) }, 1200)
-}
-
-fun onPermissionDenied() {
-    _state.update { it.copy(stage = BleStage.NO_PERMISSION, message = "Izin Bluetooth ditolak") }
-}
-
-fun bluetoothEnabled(): Boolean = adapter?.isEnabled == true
-
-fun dismissSos() {
-    dismissedSosSignature = sosSignature
-    _state.update { st ->
-        val t = st.telemetry
-        if (t != null && t.sosActive) st.copy(telemetry = t.copy(sosActive = false)) else st
-    }
-}
-
-@SuppressLint("MissingPermission")
-private fun stopScan() {
-    if (!scanning) return
-    scanning = false
-    runCatching { adapter?.bluetoothLeScanner?.stopScan(scanCallback) }
-}
-
-private val scanCallback = object : ScanCallback() {
     @SuppressLint("MissingPermission")
-    override fun onScanResult(callbackType: Int, result: ScanResult) {
-        if (!scanning) return
-        val device = result.device
-        val name = runCatching { device.name }.getOrNull()
-            ?: result.scanRecord?.deviceName
-            ?: ""
-
-        val hasNus = result.scanRecord?.serviceUuids?.any {
-            it.uuid.toString().equals(BleConfig.NUS_SERVICE_UUID.toString(), ignoreCase = true)
-        } == true
-
-        if (!nameMatchesTarget(name) && !hasNus) return
-
+    fun disconnect() {
         stopScan()
-        val displayName = if (name.isNotBlank()) name else "ESP32 Kalung"
-        connectedDeviceName = displayName
-        _state.update { it.copy(stage = BleStage.CONNECTING, message = "Menghubungkan ke $displayName…") }
-        connect(device)
+        // stopLocationTracking() // Keep location tracking active so map adjusts to phone GPS!
+        disconnectInternal()
+        _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Terputus", telemetry = null) }
     }
 
-    override fun onScanFailed(errorCode: Int) {
-        scanning = false
-        if (errorCode == ScanCallback.SCAN_FAILED_ALREADY_STARTED && !scanAlreadyStartedRetried) {
-            scanAlreadyStartedRetried = true
-            runCatching { adapter?.bluetoothLeScanner?.stopScan(this) }
-            _state.update { it.copy(stage = BleStage.SCANNING, message = "Scan lama masih aktif, mencoba ulang...") }
-            mainHandler.postDelayed({
-                startScanInternal(scanTargetNames, resetAlreadyStartedRetry = false)
-            }, 500)
-            return
-        }
-        _state.update { it.copy(stage = BleStage.ERROR, message = scanErrorMessage(errorCode)) }
-    }
-}
-
-@SuppressLint("MissingPermission")
-private fun connect(device: BluetoothDevice) {
-    if (!hasConnectPermission()) {
-        _state.update { it.copy(stage = BleStage.NO_PERMISSION, message = "Izin koneksi Bluetooth belum ada") }
-        return
-    }
-    gatt = device.connectGatt(appContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
-}
-
-@SuppressLint("MissingPermission")
-private fun disconnectInternal() {
-    gatt?.let {
-        runCatching { it.disconnect() }
-        runCatching { it.close() }
-    }
-    gatt = null
-    rxChar = null
-}
-
-private val gattCallback = object : BluetoothGattCallback() {
     @SuppressLint("MissingPermission")
-    override fun onConnectionStateChange(g: BluetoothGatt, status: Int, newState: Int) {
-        if (g !== gatt) {
-            runCatching { g.close() }
+    fun sendLine(text: String): Boolean {
+        val g = gatt ?: return false
+        val ch = rxChar ?: return false
+        if (!hasConnectPermission()) return false
+        val bytes = text.toByteArray(Charsets.UTF_8)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            g.writeCharacteristic(ch, bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) ==
+                    BluetoothGatt.GATT_SUCCESS
+        } else {
+            @Suppress("DEPRECATION")
+            run {
+                ch.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                ch.value = bytes
+                g.writeCharacteristic(ch)
+            }
+        }
+    }
+
+    // Kirim UID rescuer yang sedang login ke ESP32 lewat BLE, supaya tombol SOS fisik
+    // melaporkan identitas yang benar (bukan ID default firmware). WRITE_TYPE_NO_RESPONSE
+    // tidak ada ACK, jadi dikirim beberapa kali untuk menaikkan peluang sampai.
+    @SuppressLint("MissingPermission")
+    private fun pushRescuerIdentity() {
+        val payload = "ID|${AppSession.currentRescuerId()}"
+        sendLine(payload)
+        mainHandler.postDelayed({ sendLine(payload) }, 400)
+        mainHandler.postDelayed({ sendLine(payload) }, 1200)
+    }
+
+    fun onPermissionDenied() {
+        _state.update { it.copy(stage = BleStage.NO_PERMISSION, message = "Izin Bluetooth ditolak") }
+    }
+
+    fun bluetoothEnabled(): Boolean = adapter?.isEnabled == true
+
+    fun dismissSos() {
+        dismissedSosSignature = sosSignature
+        _state.update { st ->
+            val t = st.telemetry
+            if (t != null && t.sosActive) st.copy(telemetry = t.copy(sosActive = false)) else st
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun stopScan() {
+        if (!scanning) return
+        scanning = false
+        runCatching { adapter?.bluetoothLeScanner?.stopScan(scanCallback) }
+    }
+
+    private val scanCallback = object : ScanCallback() {
+        @SuppressLint("MissingPermission")
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            if (!scanning) return
+            val device = result.device
+            val name = runCatching { device.name }.getOrNull()
+                ?: result.scanRecord?.deviceName
+                ?: ""
+
+            val hasNus = result.scanRecord?.serviceUuids?.any {
+                it.uuid.toString().equals(BleConfig.NUS_SERVICE_UUID.toString(), ignoreCase = true)
+            } == true
+
+            if (!nameMatchesTarget(name) && !hasNus) return
+
+            stopScan()
+            val displayName = if (name.isNotBlank()) name else "ESP32 Kalung"
+            connectedDeviceName = displayName
+            _state.update { it.copy(stage = BleStage.CONNECTING, message = "Menghubungkan ke $displayName…") }
+            connect(device)
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            scanning = false
+            if (errorCode == ScanCallback.SCAN_FAILED_ALREADY_STARTED && !scanAlreadyStartedRetried) {
+                scanAlreadyStartedRetried = true
+                runCatching { adapter?.bluetoothLeScanner?.stopScan(this) }
+                _state.update { it.copy(stage = BleStage.SCANNING, message = "Scan lama masih aktif, mencoba ulang...") }
+                mainHandler.postDelayed({
+                    startScanInternal(scanTargetNames, resetAlreadyStartedRetry = false)
+                }, 500)
+                return
+            }
+            _state.update { it.copy(stage = BleStage.ERROR, message = scanErrorMessage(errorCode)) }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun connect(device: BluetoothDevice) {
+        if (!hasConnectPermission()) {
+            _state.update { it.copy(stage = BleStage.NO_PERMISSION, message = "Izin koneksi Bluetooth belum ada") }
             return
         }
-        when (newState) {
-            BluetoothProfile.STATE_CONNECTED -> {
-                _state.update { it.copy(stage = BleStage.CONNECTING, message = "Negosiasi MTU…") }
-                if (!g.requestMtu(247)) g.discoverServices()
+        gatt = device.connectGatt(appContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun disconnectInternal() {
+        // stopLocationTracking() // Keep location tracking active so map adjusts to phone GPS!
+        gatt?.let {
+            runCatching { it.disconnect() }
+            runCatching { it.close() }
+        }
+        gatt = null
+        rxChar = null
+    }
+
+    private val gattCallback = object : BluetoothGattCallback() {
+        @SuppressLint("MissingPermission")
+        override fun onConnectionStateChange(g: BluetoothGatt, status: Int, newState: Int) {
+            if (g !== gatt) {
+                runCatching { g.close() }
+                return
             }
-            BluetoothProfile.STATE_DISCONNECTED -> {
-                disconnectInternal()
-                if (_state.value.stage != BleStage.DISCONNECTED) {
-                    _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Koneksi terputus") }
+            when (newState) {
+                BluetoothProfile.STATE_CONNECTED -> {
+                    _state.update { it.copy(stage = BleStage.CONNECTING, message = "Negosiasi MTU…") }
+                    if (!g.requestMtu(247)) g.discoverServices()
+                }
+                BluetoothProfile.STATE_DISCONNECTED -> {
+                    disconnectInternal()
+                    if (_state.value.stage != BleStage.DISCONNECTED) {
+                        _state.update { it.copy(stage = BleStage.DISCONNECTED, message = "Koneksi terputus") }
+                    }
+                }
+            }
+        }
+
+        @SuppressLint("MissingPermission")
+        override fun onMtuChanged(g: BluetoothGatt, mtu: Int, status: Int) {
+            g.discoverServices()
+        }
+
+        @SuppressLint("MissingPermission")
+        override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                _state.update { it.copy(stage = BleStage.ERROR, message = "Gagal discover service (status $status)") }
+                return
+            }
+            val txChar = g.getService(BleConfig.NUS_SERVICE_UUID)?.getCharacteristic(BleConfig.NUS_TX_UUID)
+            if (txChar == null) {
+                _state.update {
+                    it.copy(
+                        stage = BleStage.ERROR,
+                        message = "NUS tidak ditemukan. Lupakan pairing manual di Setelan Bluetooth, lalu scan ulang.",
+                    )
+                }
+                return
+            }
+
+            rxChar = g.getService(BleConfig.NUS_SERVICE_UUID)?.getCharacteristic(BleConfig.NUS_RX_UUID)
+
+            g.setCharacteristicNotification(txChar, true)
+            val cccd = txChar.getDescriptor(BleConfig.CCCD_UUID)
+            if (cccd != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    g.writeDescriptor(cccd, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                } else {
+                    @Suppress("DEPRECATION")
+                    cccd.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                    @Suppress("DEPRECATION")
+                    g.writeDescriptor(cccd)
+                }
+            }
+            _state.update { it.copy(stage = BleStage.CONNECTED, message = "Terhubung — menerima data") }
+            pushRescuerIdentity()
+        }
+
+        override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic, value: ByteArray) {
+            onLine(String(value, Charsets.UTF_8))
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic) {
+            @Suppress("DEPRECATION")
+            val v = ch.value ?: return
+            onLine(String(v, Charsets.UTF_8))
+        }
+    }
+
+    private fun applySosTracking(t: Esp32Telemetry): Esp32Telemetry {
+        if (!t.sosActive) {
+            sosSignature = null
+            sosFirstSeenMs = null
+            return t
+        }
+        val sig = listOf(t.sosSender, t.sosDeviceId, t.sosLat, t.sosLon, t.sosSource, t.sosPacketTimestamp).joinToString("|")
+        if (sig != sosSignature) {
+            sosSignature = sig
+            sosFirstSeenMs = System.currentTimeMillis()
+        }
+        val dismissed = sig == dismissedSosSignature
+        return t.copy(sosActive = !dismissed, sosStartMs = sosFirstSeenMs)
+    }
+
+    private fun onLine(raw: String) {
+        val line = raw.trim()
+        if (line.isEmpty()) return
+        val parsed = applySosTracking(parseBleLine(line))
+        _state.update {
+            val tel = parsed.copy(deviceId = parsed.deviceId ?: connectedDeviceName)
+            it.copy(stage = BleStage.CONNECTED, telemetry = tel, message = "Terhubung — menerima data")
+        }
+    }
+
+    private fun hasScanPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) granted(Manifest.permission.BLUETOOTH_SCAN)
+        else granted(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    private fun hasConnectPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) granted(Manifest.permission.BLUETOOTH_CONNECT) else true
+
+    private fun granted(perm: String): Boolean =
+        ContextCompat.checkSelfPermission(appContext, perm) == PackageManager.PERMISSION_GRANTED
+
+    private fun nameMatchesTarget(name: String): Boolean {
+        if (name.isBlank()) return false
+        val n = name.trim()
+        if (scanTargetNames.any { n.equals(it, ignoreCase = true) || n.contains(it, ignoreCase = true) || it.contains(n, ignoreCase = true) }) return true
+        val keywords = listOf("aegiz", "aegis", "rescuer", "penanggung", "sar", "lora", "pj01", "r01")
+        return keywords.any { n.contains(it, ignoreCase = true) }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun startLocationTracking() {
+        if (!granted(Manifest.permission.ACCESS_FINE_LOCATION) && !granted(Manifest.permission.ACCESS_COARSE_LOCATION)) return
+        val lm = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return
+        val lastLoc = runCatching {
+            lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        }.getOrNull()
+        if (lastLoc != null) {
+            _state.update { it.copy(phoneLat = lastLoc.latitude, phoneLon = lastLoc.longitude) }
+        }
+        if (locationListener == null) {
+            locationListener = object : LocationListener {
+                override fun onLocationChanged(loc: Location) {
+                    _state.update { it.copy(phoneLat = loc.latitude, phoneLon = loc.longitude) }
+                }
+                override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
+                override fun onProviderEnabled(provider: String) {}
+                override fun onProviderDisabled(provider: String) {}
+            }
+            val listener = locationListener!!
+            runCatching {
+                if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2f, listener, Looper.getMainLooper())
+                }
+            }
+            runCatching {
+                if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 2f, listener, Looper.getMainLooper())
                 }
             }
         }
     }
 
-    @SuppressLint("MissingPermission")
-    override fun onMtuChanged(g: BluetoothGatt, mtu: Int, status: Int) {
-        g.discoverServices()
+    private fun stopLocationTracking() {
+        val listener = locationListener ?: return
+        val lm = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return
+        runCatching { lm.removeUpdates(listener) }
+        locationListener = null
     }
-
-    @SuppressLint("MissingPermission")
-    override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
-        if (status != BluetoothGatt.GATT_SUCCESS) {
-            _state.update { it.copy(stage = BleStage.ERROR, message = "Gagal discover service (status $status)") }
-            return
-        }
-        val txChar = g.getService(BleConfig.NUS_SERVICE_UUID)?.getCharacteristic(BleConfig.NUS_TX_UUID)
-        if (txChar == null) {
-            _state.update {
-                it.copy(
-                    stage = BleStage.ERROR,
-                    message = "NUS tidak ditemukan. Lupakan pairing manual di Setelan Bluetooth, lalu scan ulang.",
-                )
-            }
-            return
-        }
-
-        rxChar = g.getService(BleConfig.NUS_SERVICE_UUID)?.getCharacteristic(BleConfig.NUS_RX_UUID)
-
-        g.setCharacteristicNotification(txChar, true)
-        val cccd = txChar.getDescriptor(BleConfig.CCCD_UUID)
-        if (cccd != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                g.writeDescriptor(cccd, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-            } else {
-                @Suppress("DEPRECATION")
-                cccd.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                @Suppress("DEPRECATION")
-                g.writeDescriptor(cccd)
-            }
-        }
-        _state.update { it.copy(stage = BleStage.CONNECTED, message = "Terhubung — menerima data") }
-        pushRescuerIdentity()
-    }
-
-    override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic, value: ByteArray) {
-        onLine(String(value, Charsets.UTF_8))
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic) {
-        @Suppress("DEPRECATION")
-        val v = ch.value ?: return
-        onLine(String(v, Charsets.UTF_8))
-    }
-}
-
-private fun applySosTracking(t: Esp32Telemetry): Esp32Telemetry {
-    if (!t.sosActive) {
-        sosSignature = null
-        sosFirstSeenMs = null
-        return t
-    }
-    val sig = listOf(t.sosSender, t.sosDeviceId, t.sosLat, t.sosLon, t.sosSource, t.sosPacketTimestamp).joinToString("|")
-    if (sig != sosSignature) {
-        sosSignature = sig
-        sosFirstSeenMs = System.currentTimeMillis()
-    }
-    val dismissed = sig == dismissedSosSignature
-    return t.copy(sosActive = !dismissed, sosStartMs = sosFirstSeenMs)
-}
-
-private fun onLine(raw: String) {
-    val line = raw.trim()
-    if (line.isEmpty()) return
-    val parsed = applySosTracking(parseBleLine(line))
-    _state.update {
-        val tel = parsed.copy(deviceId = parsed.deviceId ?: connectedDeviceName)
-        it.copy(stage = BleStage.CONNECTED, telemetry = tel, message = "Terhubung — menerima data")
-    }
-}
-
-private fun hasScanPermission(): Boolean =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) granted(Manifest.permission.BLUETOOTH_SCAN)
-    else granted(Manifest.permission.ACCESS_FINE_LOCATION)
-
-private fun hasConnectPermission(): Boolean =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) granted(Manifest.permission.BLUETOOTH_CONNECT) else true
-
-private fun granted(perm: String): Boolean =
-    ContextCompat.checkSelfPermission(appContext, perm) == PackageManager.PERMISSION_GRANTED
-
-private fun nameMatchesTarget(name: String): Boolean {
-    if (name.isBlank()) return false
-    val n = name.trim()
-    if (scanTargetNames.any { n.equals(it, ignoreCase = true) || n.contains(it, ignoreCase = true) || it.contains(n, ignoreCase = true) }) return true
-    val keywords = listOf("aegiz", "aegis", "rescuer", "penanggung", "sar", "lora", "pj01", "r01")
-    return keywords.any { n.contains(it, ignoreCase = true) }
-}
-
-@SuppressLint("MissingPermission")
-fun startLocationTracking() {
-    if (!granted(Manifest.permission.ACCESS_FINE_LOCATION) && !granted(Manifest.permission.ACCESS_COARSE_LOCATION)) return
-    val lm = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return
-    val lastLoc = runCatching {
-        lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-    }.getOrNull()
-    if (lastLoc != null) {
-        _state.update { it.copy(phoneLat = lastLoc.latitude, phoneLon = lastLoc.longitude) }
-    }
-    if (locationListener == null) {
-        locationListener = object : LocationListener {
-            override fun onLocationChanged(loc: Location) {
-                _state.update { it.copy(phoneLat = loc.latitude, phoneLon = loc.longitude) }
-            }
-            override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
-        }
-        val listener = locationListener!!
-        runCatching {
-            if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2f, listener, Looper.getMainLooper())
-            }
-        }
-        runCatching {
-            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 2f, listener, Looper.getMainLooper())
-            }
-        }
-    }
-}
-
-private fun stopLocationTracking() {
-    val listener = locationListener ?: return
-    val lm = appContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return
-    runCatching { lm.removeUpdates(listener) }
-    locationListener = null
-}
 }
 
 
@@ -595,3 +587,4 @@ class SosOfflineQueue(context: Context) {
         const val KEY_EVENTS = "events"
     }
 }
+
