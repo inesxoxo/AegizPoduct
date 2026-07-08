@@ -1,5 +1,9 @@
+<<<<<<< Updated upstream
 package com.example.aegizpoduct.logic
 
+=======
+package com.example.aegiz.logic
+>>>>>>> Stashed changes
 
 import android.Manifest
 import android.annotation.SuppressLint
