@@ -618,7 +618,6 @@ private fun LoginScreen(onLogin: (AppRole) -> Unit, onLoginSuccess: () -> Unit =
             }
 
             Spacer(Modifier.height(32.dp))
-            // Label Hak Cipta / Status Sistem paling bawah
             Text("Sistem Online • Keamanan Terenkripsi", color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
             Spacer(Modifier.height(24.dp))
         }

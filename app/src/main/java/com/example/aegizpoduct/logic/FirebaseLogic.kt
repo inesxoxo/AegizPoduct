@@ -486,7 +486,6 @@ suspend fun pollAllMissions(
         }
         .filter {
             if (AppSession.role.value == AppRole.RESCUER) {
-                // Untuk penyelamat (Rescuer), hanya tampilkan misi yang diikutinya (ada di members)
                 val missionObj = root.optJSONObject(it.code)
                 val membersObj = missionObj?.optJSONObject("members")
                 val normalizedRescuerId = AppSession.currentRescuerId().replace(Regex("""[.#$\[\]/]"""), "_")
