@@ -1,8 +1,8 @@
 package com.example.aegizpoduct.logic
 
-import com.example.aegizpoduct.Model.GarminHealth
-import com.example.aegizpoduct.Model.RiskAssessment
-import com.example.aegizpoduct.Model.RiskStatus
+import com.example.aegizpoduct.model.GarminHealth
+import com.example.aegizpoduct.model.RiskAssessment
+import com.example.aegizpoduct.model.RiskStatus
 import kotlin.math.roundToInt
 
 private const val AMAN_THRESHOLD = 40

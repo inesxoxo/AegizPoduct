@@ -55,18 +55,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
-import com.aegiz.R
+import com.example.aegizpoduct.R
 import com.example.aegizpoduct.logic.evaluateRisk
-import com.aegiz.model.BleStage
-import com.aegiz.model.BleUiState
-import com.aegiz.model.DemoConfig
-import com.aegiz.model.Esp32UiState
-import com.aegiz.model.GarminHealth
-import com.aegiz.model.MissionMeta
-import com.aegiz.model.MissionMember
-import com.aegiz.model.SosDeliveryState
-import com.aegiz.model.SosEvent
-import com.aegiz.session.AppSession
+import com.example.aegizpoduct.model.BleStage
+import com.example.aegizpoduct.model.BleUiState
+import com.example.aegizpoduct.model.DemoConfig
+import com.example.aegizpoduct.model.Esp32UiState
+import com.example.aegizpoduct.model.GarminHealth
+import com.example.aegizpoduct.model.MissionMeta
+import com.example.aegizpoduct.model.MissionMember
+import com.example.aegizpoduct.model.SosDeliveryState
+import com.example.aegizpoduct.model.SosEvent
+import com.example.aegizpoduct.session.AppSession
 
 
 @Composable

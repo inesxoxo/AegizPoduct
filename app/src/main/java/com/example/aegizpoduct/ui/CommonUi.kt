@@ -1,4 +1,4 @@
-package com.aegiz.ui
+package com.example.aegizpoduct.ui
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -495,7 +495,7 @@ fun ReadinessScoreCard(assessment: RiskAssessment) {
 
 @Composable
 fun MissionSummaryCard(mission: MissionMeta?, members: List<MissionMember>, onClick: () -> Unit) {
-    val title = mission?.title?.takeIf { it.isNotBlank() } ?: com.aegiz.model.DemoConfig.MISSION_NAME
+    val title = mission?.title?.takeIf { it.isNotBlank() } ?: com.example.aegizpoduct.model.DemoConfig.MISSION_NAME
     val description = mission?.description?.takeIf { it.isNotBlank() } ?: "Operasi SAR aktif"
     val code = mission?.code ?: "-"
     Box(modifier = Modifier.fillMaxWidth().height(162.dp)) {
@@ -551,7 +551,7 @@ fun MissionDetailCard(
     onAction: () -> Unit,
     stats: List<Pair<String, String>>,
 ) {
-    val title = mission?.title?.takeIf { it.isNotBlank() } ?: com.aegiz.model.DemoConfig.MISSION_NAME
+    val title = mission?.title?.takeIf { it.isNotBlank() } ?: com.example.aegizpoduct.model.DemoConfig.MISSION_NAME
     val description = mission?.description?.takeIf { it.isNotBlank() } ?: "Operasi SAR aktif"
     val category = mission?.category?.takeIf { it.isNotBlank() } ?: "Umum"
     val code = mission?.code ?: "-"
@@ -857,7 +857,7 @@ fun Avatar(size: Dp = 40.dp) {
 fun ProfilePhotoSection(size: Dp = 60.dp) {
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val profilePhotoPath by com.aegiz.session.AppSession.profilePhotoUri.collectAsState()
+    val profilePhotoPath by com.example.aegizpoduct.session.AppSession.profilePhotoUri.collectAsState()
 
     // Launcher untuk membuka galeri gambar
     val launcher = rememberLauncherForActivityResult(
@@ -867,14 +867,14 @@ fun ProfilePhotoSection(size: Dp = 60.dp) {
         scope.launch {
             // Salin file gambar ke folder internal profiles/ agar persist
             val destDir = File(context.filesDir, "profiles").also { it.mkdirs() }
-            val uid = com.aegiz.session.AppSession.uid.value ?: "default"
+            val uid = com.example.aegizpoduct.session.AppSession.uid.value ?: "default"
             val destFile = File(destDir, "$uid.jpg")
             withContext(Dispatchers.IO) {
                 context.contentResolver.openInputStream(uri)?.use { input ->
                     destFile.outputStream().use { output -> input.copyTo(output) }
                 }
             }
-            com.aegiz.session.AppSession.setProfilePhoto(destFile.absolutePath)
+            com.example.aegizpoduct.session.AppSession.setProfilePhoto(destFile.absolutePath)
         }
     }
 
@@ -913,7 +913,7 @@ fun ProfilePhotoSection(size: Dp = 60.dp) {
         // Tombol hapus foto (hanya tampil jika ada foto)
         if (profilePhotoPath != null) {
             TextButton(
-                onClick = { com.aegiz.session.AppSession.clearProfilePhoto() },
+                onClick = { com.example.aegizpoduct.session.AppSession.clearProfilePhoto() },
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
             ) {
                 Text(
@@ -962,9 +962,9 @@ fun ProfileBody(
     onChangeRole: () -> Unit,
     padding: PaddingValues,
 ) {
-    val session = com.aegiz.session.AppSession
+    val session = com.example.aegizpoduct.session.AppSession
     // Ambil nama lengkap pengguna dari sesi aktif via currentRescuerName() (fallback ke roleLabel)
-    val displayName = session.currentRescuerName().takeIf { it.isNotBlank() && it != com.aegiz.model.DemoConfig.RESCUER_NAME } ?: roleLabel
+    val displayName = session.currentRescuerName().takeIf { it.isNotBlank() && it != com.example.aegizpoduct.model.DemoConfig.RESCUER_NAME } ?: roleLabel
     // Ambil email pengguna dari sesi aktif via StateFlow
     val emailValue = session.email.value
 
@@ -1221,7 +1221,7 @@ fun MissionDetailPage(
     var creatorName by remember {
         mutableStateOf(
             mission.createdByName.takeIf { it.isNotBlank() }
-                ?: com.aegiz.model.DemoConfig.accounts.firstOrNull { it.userId == mission.createdBy }?.displayName
+                ?: com.example.aegizpoduct.model.DemoConfig.accounts.firstOrNull { it.userId == mission.createdBy }?.displayName
                 ?: mission.createdBy
         )
     }
@@ -1237,7 +1237,7 @@ fun MissionDetailPage(
         // Jika nama masih berupa UID, coba ambil fullname dari database Firebase /users
         if (mission.createdByName.isBlank() && mission.createdBy.isNotBlank() && mission.createdBy == creatorName) {
             runCatching {
-                com.aegiz.logic.fetchUserFromFirebase(client, mission.createdBy)
+                com.example.aegizpoduct.logic.fetchUserFromFirebase(client, mission.createdBy)
             }.onSuccess { user ->
                 if (user != null && user.fullname.isNotBlank()) {
                     creatorName = user.fullname

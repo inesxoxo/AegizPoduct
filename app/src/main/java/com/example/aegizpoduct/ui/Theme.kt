@@ -1,4 +1,4 @@
-package com.example.aegizpoduct.ui.theme
+package com.example.aegizpoduct.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme

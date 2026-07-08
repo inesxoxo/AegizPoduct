@@ -1,16 +1,15 @@
 package com.example.aegizpoduct.logic
 
-import androidx.privacysandbox.ads.adservices.adid.AdId
-import com.example.aegizpoduct.Model.AppRole
-import com.example.aegizpoduct.Model.AppUser
-import com.example.aegizpoduct.Model.DemoConfig
-import com.example.aegizpoduct.Model.DemoAccount
-import com.example.aegizpoduct.Model.MissionMeta
-import com.example.aegizpoduct.Model.GarminHealth
-import com.example.aegizpoduct.Model.MissionMember
-import com.example.aegizpoduct.Model.RiskStatus
-import com.example.aegizpoduct.Model.RiskAssessment
-import com.example.aegizpoduct.Model.SosEvent
+import com.example.aegizpoduct.model.AppRole
+import com.example.aegizpoduct.model.AppUser
+import com.example.aegizpoduct.model.DemoConfig
+import com.example.aegizpoduct.model.DemoAccount
+import com.example.aegizpoduct.model.MissionMeta
+import com.example.aegizpoduct.model.GarminHealth
+import com.example.aegizpoduct.model.MissionMember
+import com.example.aegizpoduct.model.RiskStatus
+import com.example.aegizpoduct.model.RiskAssessment
+import com.example.aegizpoduct.model.SosEvent
 import com.example.aegizpoduct.session.AppSession
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser

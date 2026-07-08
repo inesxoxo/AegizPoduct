@@ -1,4 +1,4 @@
-package com.aegiz.logic
+package com.example.aegizpoduct.logic
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -22,15 +22,14 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelUuid
 import androidx.core.content.ContextCompat
-import com.example.aegizpoduct.Model.AppRole
-import com.example.aegizpoduct.Model.BleConfig
-import com.example.aegizpoduct.Model.BleStage
-import com.example.aegizpoduct.Model.BleUiState
-import com.example.aegizpoduct.Model.DemoConfig
-import com.example.aegizpoduct.Model.Esp32Telemetry
-import com.example.aegizpoduct.Model.SosEvent
+import com.example.aegizpoduct.model.AppRole
+import com.example.aegizpoduct.model.BleConfig
+import com.example.aegizpoduct.model.BleStage
+import com.example.aegizpoduct.model.BleUiState
+import com.example.aegizpoduct.model.DemoConfig
+import com.example.aegizpoduct.model.Esp32Telemetry
+import com.example.aegizpoduct.model.SosEvent
 import com.example.aegizpoduct.session.AppSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -97,7 +96,7 @@ fun parseBleLine(line: String): Esp32Telemetry {
         sosLon = sosLon,
         sosSource = sosSource,
         sosPacketTimestamp = sosPacketTimestamp,
-        measuredAtEPoch = System.currentTimeMillis() / 1000,
+        measuredAtEpoch = System.currentTimeMillis() / 1000,
     )
 }
 
@@ -121,7 +120,7 @@ private fun parsePipeSos(line: String): Esp32Telemetry? {
         sosLon = lon,
         sosSource = parts[5],
         sosPacketTimestamp = packetTimestamp,
-        measuredAtEPoch = packetTimestamp ?: System.currentTimeMillis() / 1000,
+        measuredAtEpoch = packetTimestamp ?: System.currentTimeMillis() / 1000,
     )
 }
 

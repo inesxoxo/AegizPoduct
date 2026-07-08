@@ -1,4 +1,4 @@
-package com.example.aegizpoduct.Model
+package com.example.aegizpoduct.model
 
 import java.util.UUID
 
