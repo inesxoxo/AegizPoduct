@@ -1,4 +1,4 @@
-package com.example.aegizpoduct.Model
+package com.example.aegizpoduct.model
 
 import java.util.UUID
 
@@ -110,8 +110,8 @@ data class MissionMeta(
     val createdAt: Long = 0L,
     val startedAt: Long = 0L,    // timestamp saat misi dimulai (diisi dari HP saat klik mulai)
     val finishedAt: Long = 0L,   // timestamp saat misi selesai (diisi dari HP saat klik selesai)
-    val lat: Double? = null,     // koordinat lokasi misi (latitude)
-    val lon: Double? = null,     // koordinat lokasi misi (longitude)
+    val lat: Double? = null, 
+    val lon: Double? = null,    
 )
 
 data class MissionMember(
@@ -180,4 +180,3 @@ data class RiskAssessment(
     val status: RiskStatus,
     val reason: String,
 )
-

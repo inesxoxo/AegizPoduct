@@ -1,8 +1,8 @@
 package com.example.aegizpoduct.session
 
 import android.content.Context
-import com.example.aegizpoduct.Model.AppRole
-import com.example.aegizpoduct.Model.DemoConfig
+import com.example.aegizpoduct.model.AppRole
+import com.example.aegizpoduct.model.DemoConfig
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

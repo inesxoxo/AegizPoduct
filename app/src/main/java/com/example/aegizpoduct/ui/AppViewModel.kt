@@ -41,7 +41,7 @@ class BleViewModel(application: Application) : AndroidViewModel(application) {
     fun disconnect() = manager.disconnect()
     fun onPermissionDenied() = manager.onPermissionDenied()
     fun dismissSos() = manager.dismissSos()
-    fun startLocationUpdates() = manager.startLocationTracking() // start location updates on phone
+    fun startLocationUpdates() = manager.startLocationTracking()
 }
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
