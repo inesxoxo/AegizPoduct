@@ -2,9 +2,9 @@ package com.example.aegizpoduct.Model
 
 import java.util.UUID
 
-enum class AppRole {RESCUER, PENANGGUNG_JAWAB}
+enum class AppRole { RESCUER, PENANGGUNG_JAWAB }
 
-data class AppUser (
+data class AppUser(
     val uid: String = "",
     val fullname: String = "",
     val email: String = "",
@@ -20,7 +20,8 @@ data class DemoAccount(
     val displayName: String,
 )
 
-object DemoConfig{
+
+object DemoConfig {
     const val MISSION_ID = "DEMO-01"
     const val MISSION_NAME = "Misi 01"
     const val RESPONSIBLE_ID = "PJ001"
@@ -31,14 +32,14 @@ object DemoConfig{
 
     val accounts = listOf(
         DemoAccount(
-            username = "penanggungJawab01",
+            username = "penanggungjawab",
             password = "demo123",
             role = AppRole.PENANGGUNG_JAWAB,
             userId = RESPONSIBLE_ID,
-            displayName = RESPONSIBLE_NAME
+            displayName = RESPONSIBLE_NAME,
         ),
         DemoAccount(
-            username = "Rescuer01",
+            username = "rescuer01",
             password = "demo123",
             role = AppRole.RESCUER,
             userId = RESCUER_ID,
@@ -47,12 +48,14 @@ object DemoConfig{
     )
 }
 
+
 enum class BleStage { IDLE, BLUETOOTH_OFF, NO_PERMISSION, SCANNING, NOT_FOUND, CONNECTING, CONNECTED, DISCONNECTED, ERROR }
 
 object BleConfig {
     val RESCUER_DEVICE_NAMES = listOf("rescuer 01", "Rescuer01")
     val RECEIVER_DEVICE_NAMES = listOf("penanggung jawab 01", "Penanggungjawab01")
     val DEVICE_NAMES = RESCUER_DEVICE_NAMES + RECEIVER_DEVICE_NAMES
+
     val NUS_SERVICE_UUID: UUID = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
     val NUS_TX_UUID: UUID = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
     val NUS_RX_UUID: UUID = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E")
@@ -60,15 +63,19 @@ object BleConfig {
     const val SCAN_TIMEOUT_MS = 12_000L
 }
 
+
 data class Esp32Telemetry(
     val deviceId: String? = null,
-    val measuredAtEPoch: Long? = null,
+    val measuredAtEpoch: Long? = null,
+
     val gpsValid: Boolean = false,
     val lat: Double? = null,
     val lng: Double? = null,
     val charsProcessed: Long? = null,
+
     val loraOk: Boolean? = null,
     val wifiOk: Boolean? = null,
+
     val sosActive: Boolean = false,
     val sosSender: String? = null,
     val sosDeviceId: String? = null,
@@ -76,6 +83,7 @@ data class Esp32Telemetry(
     val sosLon: Double? = null,
     val sosSource: String? = null,
     val sosPacketTimestamp: Long? = null,
+
     val sosStartMs: Long? = null,
 )
 
@@ -90,6 +98,7 @@ data class BleUiState(
     val pendingSosCount: Int = 0,
 )
 
+
 data class MissionMeta(
     val title: String = DemoConfig.MISSION_NAME,
     val description: String = "",
@@ -97,12 +106,12 @@ data class MissionMeta(
     val code: String = DemoConfig.MISSION_ID,
     val status: String = "active",
     val createdBy: String = DemoConfig.RESPONSIBLE_ID,
-    val createdByName: String = "",
+    val createdByName: String = "",    // nama lengkap pembuat misi (bukan UID)
     val createdAt: Long = 0L,
-    val startedAt: Long = 0L,
-    val finishedAt: Long = 0L,
-    val lat: Double? = null,
-    val lon: Double? = null,
+    val startedAt: Long = 0L,    // timestamp saat misi dimulai (diisi dari HP saat klik mulai)
+    val finishedAt: Long = 0L,   // timestamp saat misi selesai (diisi dari HP saat klik selesai)
+    val lat: Double? = null,     // koordinat lokasi misi (latitude)
+    val lon: Double? = null,     // koordinat lokasi misi (longitude)
 )
 
 data class MissionMember(
@@ -115,6 +124,7 @@ data class MissionMember(
     val lon: Double? = null,
     val updatedAt: Long? = null,
 )
+
 
 enum class SosDeliveryState { NONE, SENDING, SENT, QUEUED, FAILED }
 
@@ -144,6 +154,7 @@ data class GarminHealth(
     val source: String? = null,
 )
 
+
 data class Esp32UiState(
     val telemetry: Esp32Telemetry? = null,
     val sosEvents: List<SosEvent> = emptyList(),
@@ -155,6 +166,7 @@ data class Esp32UiState(
     val missionMessage: String? = null,
     val missionError: String? = null,
 )
+
 
 enum class RiskStatus(val label: String) {
     AMAN("Aman"),
@@ -168,3 +180,4 @@ data class RiskAssessment(
     val status: RiskStatus,
     val reason: String,
 )
+
