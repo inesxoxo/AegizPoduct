@@ -250,7 +250,5 @@ class BleManager( private val appContext: Context) {
     }
 }
 
-fun stableQueueEventId(){
-
-}
+measuredAtEPoch
 
