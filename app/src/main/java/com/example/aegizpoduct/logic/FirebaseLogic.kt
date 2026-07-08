@@ -258,4 +258,77 @@ suspend fun registerWithEmailPassword(email: String, pass: String): FirebaseUser
             .addOnFailureListener { e -> cont.resumeWithException(e) }
     }
 
+suspend fun createMission(
+    client: FirebaseRestClient,
+    code: String,
+    title: String,
+    description: String,
+    category: String,
+    createdBy: String = AppSession.currentResponsibleId(),
+    createdByName: String = AppSession.currentResponsibleName(),
+    lat: Double? = null,
+    lon: Double? = null,
+): MissionMeta {
+    val now = System.currentTimeMillis()
+    val meta = MissionMeta(
+        title = title.trim(),
+        description = description.trim(),
+        category = category.trim(),
+        code = code.trim().uppercase(),
+        status = "active",
+        createdBy = createdBy,
+        createdByName = createdByName,
+        createdAt = now / 1000,
+        startedAt = now,
+        lat = lat,
+        lon = lon,
+    )
+    client.put(FirebaseConfig.missionMetaPath(meta.code), meta.toJson().toString())
+    return meta
+}
+
+private suspend fun writeMember(client: FirebaseRestClient, code: String, member: MissionMember) {
+    client.put(FirebaseConfig.memberPath(code, member.rescuerId), member.toJson().toString())
+}
+
+suspend fun joinMission(
+    client: FirebaseRestClient,
+    code: String,
+    rescuerId: String = AppSession.currentRescuerId(),
+    rescuerName: String = AppSession.currentRescuerName(),
+): MissionMeta {
+    val missionCode = code.trim().uppercase()
+    val meta = getMissionMeta(client, missionCode) ?: error("Kode misi $missionCode tidak ditemukan")
+    if (!meta.status.equals("active", ignoreCase = true)) {
+        error("Misi ${meta.code} sudah tidak aktif")
+    }
+    writeMember(
+        client,
+        missionCode,
+        MissionMember(
+            rescuerId = rescuerId,
+            name = rescuerName,
+            status = RiskStatus.AMAN.label,
+            riskScore = 0,
+            riskStatus = RiskStatus.AMAN.name,
+            updatedAt = System.currentTimeMillis() / 1000,
+        ),
+    )
+    return meta
+}
+
+suspend fun getMissionMeta(client: FirebaseRestClient, code: String): MissionMeta? {
+    val raw = client.get(FirebaseConfig.missionMetaPath(code))
+    if (raw.isBlank() || raw == "null") return null
+    return JSONObject(raw).toMissionMeta(code)
+}
+
+suspend fun finishMission(client: FirebaseRestClient, code: String) {
+    val meta = getMissionMeta(client, code) ?: return
+    val finishedMeta = meta.copy(
+        status = "finished",
+        finishedAt = System.currentTimeMillis(),
+    )
+    client.put(FirebaseConfig.missionMetaPath(code), finishedMeta.toJson().toString())
+}
 
