@@ -61,7 +61,7 @@ object BleConfig {
     const val SCAN_TIMEOUT_MS = 12_000L
 }
 
-data class Esp32Telementry(
+data class Esp32Telemetry(
     val deviceId: String? = null,
     val measuredAtEPoch: Long? = null,
     val gpsValid: Boolean = false,
@@ -78,4 +78,15 @@ data class Esp32Telementry(
     val sosSource: String? = null,
     val sosPacketTimestamp: Long? = null,
     val sosStartMs: Long? = null,
+)
+
+data class BleUiState(
+    val stage: BleStage = BleStage.IDLE,
+    val telemetry: Esp32Telemetry? = null,
+    val message: String? = null,
+    val internetAvailable: Boolean? = null,
+    val phoneLat: Double? = null,
+    val phoneLon: Double? = null,
+    val sosDeliveryState: SosDeliveryState = SosDeliveryState.NONE,
+    val pendingSosCount: Int = 0,
 )
