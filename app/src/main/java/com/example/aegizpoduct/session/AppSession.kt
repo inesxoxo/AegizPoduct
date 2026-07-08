@@ -117,7 +117,6 @@ object AppSession {
         _role.value = null
         _activeMissionCode.value = null
         _profilePhotoUri.value = null
-        // Tidak hapus foto profil dan kode misi aktif saat clearSession agar persistensi per-user tetap terjaga
         prefs().edit()
             .remove(KEY_UID)
             .remove(KEY_FULLNAME)
