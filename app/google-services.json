@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "990145377610",
+    "firebase_url": "https://aegiz-ede38-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "aegiz-ede38",
+    "storage_bucket": "aegiz-ede38.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990145377610:android:1f8a04d964d92d34dbfdb3",
+        "android_client_info": {
+          "package_name": "com.iotbridge.tester"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEu3riI03Q1f33lacFgdhRKHRcCek4W5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
