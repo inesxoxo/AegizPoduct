@@ -93,7 +93,7 @@ fun AegizSupervisorApp(
                 state = firebaseState,
                 bleState = bleState,
                 onOpenMission = { tab = 2 },
-                onViewAllHistory = { tab = 1 }, // navigasi ke tab riwayat
+                onViewAllHistory = { tab = 1 },
                 padding = padding,
             )
             1 -> HistoryBody(padding, firebaseState.missionHistory)
@@ -112,7 +112,7 @@ fun AegizSupervisorApp(
                 primaryStatus = if (bleState.stage == BleStage.CONNECTED) "Receiver BLE tersambung" else "Receiver BLE belum tersambung",
                 secondaryStatus = bleState.message ?: "Scan Penanggungjawab01 dari aplikasi untuk membaca relay LoRa.",
                 state = bleState,
-                health = null, // Pengawas/Posko tidak menggunakan Garmin watch
+                health = null,
                 targetDeviceLabel = "Penanggungjawab01",
                 onScan = onScan,
                 onDisconnect = onDisconnect,
@@ -130,7 +130,7 @@ private fun SupervisorDashboardBody(
     state: Esp32UiState,
     bleState: BleUiState,
     onOpenMission: () -> Unit,
-    onViewAllHistory: () -> Unit, // fungsi untuk navigasi ke tab riwayat
+    onViewAllHistory: () -> Unit, 
     padding: PaddingValues,
 ) {
     val alertEvent = state.sosEvents.firstOrNull { it.status.equals("DARURAT", ignoreCase = true) }
@@ -163,10 +163,7 @@ private fun SupervisorDashboardBody(
                 member = state.members.firstOrNull { it.rescuerId == alertEvent.rescuerId },
             )
         }
-        // Catatan: AegizDeviceStatusCard (BLE) DIPINDAHKAN ke halaman Profil
-        // Dashboard tidak lagi menampilkan kartu koneksi bluetooth
 
-        // Header riwayat misi dengan tombol "Lihat Semua" yang bisa diklik
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -179,7 +176,7 @@ private fun SupervisorDashboardBody(
                 fontWeight = FontWeight.SemiBold,
                 fontFamily = PlusJakartaSans
             )
-            // Klik "Lihat Semua" akan berpindah ke tab riwayat
+
             Text(
                 text = "Lihat Semua",
                 color = AegizColors.Red,
@@ -197,7 +194,7 @@ private fun SupervisorDashboardBody(
                 color = Color(0xFF2E7D32),
             )
         } else {
-            // Tampilkan maksimal 3 misi terakhir di dashboard
+
             state.missionHistory.take(3).forEach { mission ->
                 val isActive = mission.status.equals("active", ignoreCase = true)
                 ActivityRow(
@@ -278,17 +275,14 @@ fun MissionCreateCard(
     var category by rememberSaveable { mutableStateOf("Rescue") }
     var code by rememberSaveable { mutableStateOf(generateMissionCode()) }
     var localError by rememberSaveable { mutableStateOf<String?>(null) }
-    // Simpan lokasi HP yang diterima saat pertama kali composable terbuka
     var missionLat by rememberSaveable { mutableStateOf<Double?>(null) }
     var missionLon by rememberSaveable { mutableStateOf<Double?>(null) }
 
-    // Auto-isi lokasi dari HP saat pertama kali tersedia
     LaunchedEffect(phoneLat, phoneLon) {
         if (missionLat == null && phoneLat != null) missionLat = phoneLat
         if (missionLon == null && phoneLon != null) missionLon = phoneLon
     }
 
-    // Daftar jenis bencana untuk dropdown kategori misi
     val kategoriOptions = listOf(
         "Banjir",
         "Tanah Longsor",
@@ -301,7 +295,6 @@ fun MissionCreateCard(
         "Kecelakaan Massal",
         "Rescue Umum",
     )
-    // State untuk mengontrol buka/tutup dropdown
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     Card(
@@ -327,21 +320,18 @@ fun MissionCreateCard(
                 FigmaInput(label = "Judul Misi", value = title, onValueChange = { title = it })
                 FigmaInput(label = "Deskripsi", value = description, onValueChange = { description = it })
 
-                // Dropdown untuk memilih kategori/jenis bencana
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Kategori Misi", color = Color.White, fontSize = 13.sp, lineHeight = 16.sp)
-                    // ExposedDropdownMenuBox: komponen Material3 untuk dropdown pilihan
                     ExposedDropdownMenuBox(
                         expanded = dropdownExpanded,
                         onExpandedChange = { dropdownExpanded = !dropdownExpanded }, // toggle buka/tutup
                     ) {
-                        // Tampilan nilai yang dipilih (mirip text field tapi read-only)
                         OutlinedTextField(
                             value = category,
-                            onValueChange = {}, // read-only, tidak menerima input langsung
+                            onValueChange = {},
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor(), // penting: menandai ini sebagai anchor dropdown
+                                .menuAnchor(),
                             readOnly = true,
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -353,7 +343,6 @@ fun MissionCreateCard(
                                 unfocusedBorderColor = Color.Transparent,
                             ),
                             trailingIcon = {
-                                // Ikon panah yang berputar saat dropdown terbuka
                                 Icon(
                                     imageVector = Icons.Default.KeyboardArrowDown,
                                     contentDescription = null,
@@ -362,18 +351,17 @@ fun MissionCreateCard(
                             },
                             shape = RoundedCornerShape(6.dp),
                         )
-                        // Daftar pilihan dropdown yang muncul saat diklik
                         ExposedDropdownMenu(
                             expanded = dropdownExpanded,
-                            onDismissRequest = { dropdownExpanded = false }, // tutup jika klik di luar
+                            onDismissRequest = { dropdownExpanded = false },
                         ) {
                             kategoriOptions.forEach { opsi ->
-                                // Setiap item kategori bencana
+
                                 DropdownMenuItem(
                                     text = { Text(opsi, fontFamily = PlusJakartaSans) },
                                     onClick = {
-                                        category = opsi          // simpan pilihan
-                                        dropdownExpanded = false // tutup dropdown
+                                        category = opsi
+                                        dropdownExpanded = false
                                     }
                                 )
                             }
@@ -501,7 +489,6 @@ private fun EmergencyPopupDialog(
                     )
                 }
 
-                // Thin red divider line
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -511,7 +498,6 @@ private fun EmergencyPopupDialog(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Profile Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -554,7 +540,6 @@ private fun EmergencyPopupDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Info Grid: Lokasi Terakhir & Waktu Terakhir
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -630,7 +615,6 @@ private fun EmergencyPopupDialog(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Respons Button
                 Button(
                     onClick = onOpenMap,
                     modifier = Modifier
